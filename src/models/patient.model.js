@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const PatientSchema = mongoose.Schema(
   {
-    PatientName: {
+    patientName: {
       type: String,
       required: true,
       trim: true,

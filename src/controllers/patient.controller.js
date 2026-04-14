@@ -7,7 +7,7 @@ import { ApiResponse } from "../utility/apiResponse.js";
 
 const registerPatient = asyncHandler(async (req, res) => {
   const {
-    PatientName,
+    patientName,
     age,
     gender,
     diagnosis,
@@ -21,7 +21,7 @@ const registerPatient = asyncHandler(async (req, res) => {
   } = req.body;
 
   if (
-    !PatientName ||
+    !patientName ||
     !age ||
     !gender ||
     !diagnosis ||
@@ -29,6 +29,11 @@ const registerPatient = asyncHandler(async (req, res) => {
     !phoneNumber
   ) {
     throw new ApiError(400, "provide all required details");
+  }
+
+  const phoneRegex = /^[0-9]{10}$/;
+  if (!phoneRegex.test(phoneNumber)) {
+    throw new ApiError(400, "provide valid phone number");
   }
 
   const existingPatient = await Patient.findOne({
@@ -39,7 +44,7 @@ const registerPatient = asyncHandler(async (req, res) => {
   }
 
   const newPatient = await Patient.create({
-    PatientName,
+    patientName,
     age,
     gender,
     diagnosis,
@@ -115,7 +120,7 @@ const findOnePatient = asyncHandler(async (req, res) => {
 const updatePatientDetails = asyncHandler(async (req, res) => {
   const { patientId } = req.params;
   const {
-    PatientName,
+    patientName,
     age,
     gender,
     diagnosis,
@@ -136,8 +141,8 @@ const updatePatientDetails = asyncHandler(async (req, res) => {
 
   let updateField = {};
 
-  if (PatientName?.trim()) {
-    updateField.PatientName = PatientName?.trim();
+  if (patientName?.trim()) {
+    updateField.patientName = patientName?.trim();
   }
   if (age) {
     updateField.age = age;
@@ -200,10 +205,66 @@ const deletePatient = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, patient, "patient deleted successfully "));
 });
 
+const searchPatient = asyncHandler(async (req, res) => {
+  const { patientName, diagnosis, medicine, phoneNumber } = req.query;
+
+  // if (patientName?.trim()) searchField.patientName = patientName.trim();
+  // if (diagnosis?.trim()) searchField.diagnosis = diagnosis.trim();
+  // if (medicine?.trim()) searchField.medicine = medicine.trim();
+  // if (phoneNumber?.trim()) searchField.phoneNumber = phoneNumber.trim();
+
+  if (
+    !patientName?.trim() &&
+    !diagnosis?.trim() &&
+    !medicine?.trim() &&
+    !phoneNumber?.trim()
+  ) {
+    throw new ApiError(400, "provide at least one search field");
+  }
+
+  let conditions = [];
+
+  if (patientName?.trim())
+    conditions.push({
+      patientName: { $regex: patientName?.trim(), $options: "i" },
+    });
+
+  if (diagnosis?.trim())
+    conditions.push({
+      diagnosis: { $regex: diagnosis?.trim(), $options: "i" },
+    });
+
+  if (medicine?.trim())
+    conditions.push({
+      medicine: { $regex: medicine?.trim(), $options: "i" },
+    });
+  if (phoneNumber?.trim())
+    conditions.push({
+      phoneNumber: { $regex: phoneNumber?.trim(), $options: "i" },
+    });
+  const filterPatients = await Patient.aggregate([
+    {
+      $match: {
+        $or: conditions,
+      },
+    },
+  ]);
+
+  if (filterPatients.length === 0) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, [], "no matching result found"));
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, filterPatients, "here is all matching results"));
+});
+
 export {
   registerPatient,
   fetchAllPatient,
   findOnePatient,
   updatePatientDetails,
   deletePatient,
+  searchPatient,
 };
