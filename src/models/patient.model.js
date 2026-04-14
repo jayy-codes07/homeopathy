@@ -32,6 +32,12 @@ const PatientSchema = mongoose.Schema(
       type: String,
       enum: ["VEG", "NON VEG", "MIXED"],
     },
+    phoneNumber: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
     familySize: Number,
     occupation: String,
     followUpDate: Date,
