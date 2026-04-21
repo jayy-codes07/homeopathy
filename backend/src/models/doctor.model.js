@@ -1,5 +1,6 @@
 import bcrypt, { hash } from "bcrypt";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken"
 
 const doctorSchema = mongoose.Schema(
   {
@@ -43,5 +44,15 @@ doctorSchema.pre("save", async function () {
 doctorSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
+
+
+doctorSchema.methods.generateAccesstoken = function () {
+  return jwt.sign({ id: this._id, fullname: this.fullname, email: this.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRE })
+
+}
+doctorSchema.methods.generateRefreshToken = function () {
+  return jwt.sign({ id: this._id}, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRE })
+}
+
 
 export const Doctor = mongoose.model("Doctor", doctorSchema);
