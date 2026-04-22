@@ -18,5 +18,7 @@ export const uploadtocloudinary = async function (url) {
 
     console.log(uploadResult);
 
+    return uploadResult.url
+
 
 };
