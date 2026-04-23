@@ -2,12 +2,12 @@ import multer from 'multer'
 import path from "path"
 
 const storage = multer.diskStorage({
-    destination : function(req,res,cb){
-        cd(null,'../../public/tempUserAvatar')
+    destination : function(req,file,cb){
+        cb(null,'./public/tempUserAvatar')
     },
-    filename : function (req,res,cb) {
-        const exe= path.extname(path.originalname)
-        cb(null,`${File.fieldname}-${Date.now}.${ext}`)
+    filename : function (req,file,cb) {
+        const exe= path.extname(file.originalname)
+        cb(null,`${file.fieldname}-${Date.now()}.${exe}`)
     }
 })
 
