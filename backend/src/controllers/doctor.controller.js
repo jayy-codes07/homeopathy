@@ -94,4 +94,18 @@ const loginDoctor = asyncHandler(async (req, res) => {
     );
 });
 
+const updateDoctorDetails = asyncHandler(async (req, res) => {
+  const { doctorId } = req.params
+  const { fullname, email, password, degree } = req.body;
+
+  if (!isValidObjectId(doctorId)) {
+    throw new ApiError(400, "provide valid doctorId")
+  }
+  let update = {}
+
+  
+
+
+})
+
 export { registerDoctor, loginDoctor };
