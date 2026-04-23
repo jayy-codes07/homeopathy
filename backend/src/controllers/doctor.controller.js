@@ -96,16 +96,48 @@ const loginDoctor = asyncHandler(async (req, res) => {
 
 const updateDoctorDetails = asyncHandler(async (req, res) => {
   const { doctorId } = req.params
-  const { fullname, email, password, degree } = req.body;
+  const { fullname, email, , degree } = req.body;
 
   if (!isValidObjectId(doctorId)) {
     throw new ApiError(400, "provide valid doctorId")
   }
   let update = {}
 
-  
+  if (fullname?.trim()) {
+    update = { ...update, fullname: fullname?.trim() }
+  }
 
+  if (email?.trim()) {
+    update = { ...update, email: email?.trim() }
+  }
+
+  if (degree?.trim()) {
+    update = { ...update, degree: degree?.trim() }
+  }
+
+
+
+  const doctor = await Doctor.findByIdAndUpdate(doctorId, update, { new: true }).select('-password -refreshToken')
+
+  if (!doctor) {
+    throw new ApiError(404, "doctor does not exist")
+  }
+
+  res.status(200).json(new ApiResponse(200, doctor, "doctor details updated successfully"))
 
 })
 
-export { registerDoctor, loginDoctor };
+const updateDoctorPassword = asyncHandler(async (req, res) => {
+
+})
+
+const updateDoctorAvatar = asyncHandler(async (req, res) => {
+
+})
+
+const DeleteDoctor = asyncHandler(async (req, res) => {
+
+})
+
+
+export { registerDoctor, loginDoctor, updateDoctorPassword, updateDoctorAvatar, updateDoctorDetails };
