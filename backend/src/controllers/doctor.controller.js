@@ -34,7 +34,7 @@ const registerDoctor = asyncHandler(async (req, res) => {
 
   if (req?.file?.path) {
     const uploadedAvatar = await uploadtocloudinary(req?.file?.path);
-    upload = { ...upload, avatar: uploadedAvatar };
+    upload = { ...upload, avatar: uploadedAvatar?.url };
   }
 
   const doctor = await Doctor.create(upload);
@@ -147,16 +147,69 @@ const updateDoctorPassword = asyncHandler(async (req, res) => {
   }
 
   existDoctor.password = password.trim();
-  await existDoctor.save().select("-password -refreshToken");
+
+  await existDoctor.save();
+  const updatedDoctor = await Doctor.findById(doctorId).select(
+    "-password -refreshToken",
+  );
 
   return res
     .status(200)
-    .json(new ApiResponse(200, existDoctor, "password updated successfully"));
+    .json(new ApiResponse(200, updatedDoctor, "password updated successfully"));
 });
 
-const updateDoctorAvatar = asyncHandler(async (req, res) => {});
+const updateDoctorAvatar = asyncHandler(async (req, res) => {
+  const { doctorId } = req.params;
 
-const DeleteDoctor = asyncHandler(async (req, res) => {});
+  if (!isValidObjectId(doctorId)) {
+    throw new ApiError(400, "provide valid doctor id");
+  }
+
+  if (!req?.file?.path) {
+    throw new ApiError(400, "file is not provided");
+  }
+
+  const uploadedAvatar = await uploadtocloudinary(req?.file?.path);
+
+  if (!uploadToLocal?.url) {
+    throw new ApiError(500, "problem in saving image to local");
+  }
+
+  if (!uploadedAvatar) {
+    throw new ApiError(500, "problem in uploading to cloudinary");
+  }
+  const uploading = { avatar: uploadedAvatar?.url };
+
+  const doctor = await Doctor.findByIdAndUpdate(doctorId, uploading, {
+    new: true,
+  }).select("-password -refreshToken");
+
+  if (!doctor) {
+    throw new ApiError(500, "problem in updating database ");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, doctor, "Avatar updated successfully"));
+});
+
+const DeleteDoctor = asyncHandler(async (req, res) => {
+  const { doctorId } = req.params;
+
+  if (!isValidObjectId(doctorId)) {
+    throw new ApiError(400, "provide valid doctor id");
+  }
+
+  const doctor = await Doctor.findByIdAndDelete(doctorId);
+
+  if (!doctor) {
+    throw new ApiError(404, "this doctor does not exist in database");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, doctor, "doctor deleted successfully"));
+});
 
 export {
   registerDoctor,
@@ -164,4 +217,5 @@ export {
   updateDoctorPassword,
   updateDoctorAvatar,
   updateDoctorDetails,
+  DeleteDoctor,
 };
