@@ -9,6 +9,8 @@ import {
   DeleteDoctor,
 } from "../controllers/doctor.controller.js";
 import { upload } from "../middleware/multer.middleware.js";
+import { verifyJWT } from "../middleware/auth.middleware.js";
+
 const router = Router();
 
 router.route("/register").post(upload.single("avatar"), registerDoctor);
