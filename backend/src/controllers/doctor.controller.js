@@ -171,10 +171,6 @@ const updateDoctorAvatar = asyncHandler(async (req, res) => {
 
   const uploadedAvatar = await uploadtocloudinary(req?.file?.path);
 
-  if (!uploadToLocal?.url) {
-    throw new ApiError(500, "problem in saving image to local");
-  }
-
   if (!uploadedAvatar) {
     throw new ApiError(500, "problem in uploading to cloudinary");
   }
