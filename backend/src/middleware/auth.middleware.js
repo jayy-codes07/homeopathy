@@ -15,7 +15,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     if (!verifyToken) {
         throw new ApiError(400, "Accesstoken is incorrect")
     }
-    const userid = verifyToken?._id
+    const userid = verifyToken?.id
 
     const doctor = await Doctor.findById(userid).select('-password -refreshToken')
 
