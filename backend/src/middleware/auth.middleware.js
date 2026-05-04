@@ -7,7 +7,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     const token = req?.cookies.Accesstoken
 
     if (!token) {
-        throw new ApiError(400, "unauthorizes user")
+        throw new ApiError(400, "unauthorized user")
     }
 
 

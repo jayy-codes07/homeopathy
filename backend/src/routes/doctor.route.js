@@ -7,6 +7,8 @@ import {
   updateDoctorAvatar,
   updateDoctorDetails,
   DeleteDoctor,
+  logoutDoctor,
+  refreshAccessToken,
 } from "../controllers/doctor.controller.js";
 import { upload } from "../middleware/multer.middleware.js";
 import { verifyJWT } from "../middleware/auth.middleware.js";
@@ -15,6 +17,8 @@ const router = Router();
 
 router.route("/register").post(upload.single("avatar"), registerDoctor);
 router.route("/login").post(loginDoctor);
+router.route("/logout").post(verifyJWT, logoutDoctor);
+router.route("/generateToken").post(refreshAccessToken);
 router.route("/Password/:doctorId").patch(verifyJWT, updateDoctorPassword);
 router.route("/Details/:doctorId").patch(verifyJWT, updateDoctorDetails);
 router

@@ -4,6 +4,7 @@ import { ApiError } from "../utility/apiError.js";
 import { ApiResponse } from "../utility/apiResponse.js";
 import { asyncHandler } from "../utility/asyncHandler.js";
 import { uploadtocloudinary } from "../utility/cloudinary.js";
+import jwt from "jsonwebtoken";
 
 const registerDoctor = asyncHandler(async (req, res) => {
   const { fullname, email, password, degree } = req.body;
@@ -90,6 +91,65 @@ const loginDoctor = asyncHandler(async (req, res) => {
         200,
         { doctor, Accesstoken, RefreshToken },
         "doctor logged successfully ",
+      ),
+    );
+});
+
+const logoutDoctor = asyncHandler(async (req, res) => {
+  const doctor = req.doctor;
+  if (!doctor) {
+    throw new ApiError(400, "provide valid object id");
+  }
+
+  await Doctor.findByIdAndUpdate(
+    doctor?._id,
+    { $unset: { refreshToken: 1 } },
+    { new: true },
+  ).select("-password -refreshToken");
+
+  res
+    .status(200)
+    .clearCookie("AccessToken")
+    .clearCookie("refreshToken")
+    .json(new ApiResponse(200, doctor, "logout successfully"));
+});
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const incomeToken = req.cookies.refreshToken || req.body.refreshToken;
+
+  if (!incomeToken) {
+    throw new ApiError(400, "refresh token does not found");
+  }
+  const verifyToken = jwt.verify(incomeToken, process.env.REFRESH_TOKEN_SECRET);
+
+  const doctor = await Doctor.findById(verifyToken.id).select("-password");
+
+  if (!doctor) {
+    throw new ApiError(400, "this doctor does not exist");
+  }
+
+  if (incomeToken !== doctor.refreshToken) {
+    throw new ApiError(400, "refresh token is expired or used");
+  }
+
+  const generatedAccessToken = doctor.generateAccesstoken();
+  const generatedRefreshToken = doctor.generateRefreshToken();
+
+  const saveDoctor = await Doctor.findByIdAndUpdate(verifyToken.id, {
+    refreshToken: generatedRefreshToken,
+  });
+
+  const options = { httpOnly: true, secure: true };
+
+  return res
+    .status(200)
+    .cookie("AccessToken", generatedAccessToken, options)
+    .cookie("RefreshToken", generatedRefreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        { doctor, generatedAccessToken, generatedRefreshToken },
+        "accessToken generated successfully",
       ),
     );
 });
@@ -210,6 +270,8 @@ const DeleteDoctor = asyncHandler(async (req, res) => {
 export {
   registerDoctor,
   loginDoctor,
+  logoutDoctor,
+  refreshAccessToken,
   updateDoctorPassword,
   updateDoctorAvatar,
   updateDoctorDetails,
