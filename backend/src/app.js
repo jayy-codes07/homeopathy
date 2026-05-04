@@ -10,6 +10,8 @@ import doctorRoute from "./routes/doctor.route.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import ratelimit from "express-rate-limit";
 import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
+import compression from "compression";
 
 const app = express();
 app.use(helmet());
@@ -26,7 +28,8 @@ const limiter = ratelimit({
   legacyHeaders: false,
   message: "you hit rate limit try after some seconds",
 });
-
+app.use(mongoSanitize());
+app.use(compression());
 app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
