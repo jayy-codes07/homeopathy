@@ -28,13 +28,12 @@ const limiter = ratelimit({
   legacyHeaders: false,
   message: "you hit rate limit try after some seconds",
 });
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(mongoSanitize());
 app.use(compression());
 app.use(limiter);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(errorHandler);
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
@@ -46,5 +45,6 @@ app.get("/", (req, res) => {
 app.use("/api/v1/patient", patientRoute);
 app.use("/api/v1/doctor", doctorRoute);
 app.use("/api/v1/followup", followUpRoute);
+app.use(errorHandler);
 
 export { app };
