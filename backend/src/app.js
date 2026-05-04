@@ -27,6 +27,8 @@ const limiter = ratelimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: "you hit rate limit try after some seconds",
+  validate: { xForwardedForHeader: false } // add this line
+  
 });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
