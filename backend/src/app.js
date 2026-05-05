@@ -14,6 +14,7 @@ import mongoSanitize from "express-mongo-sanitize";
 import compression from "compression";
 
 const app = express();
+app.set('trust proxy', 1)
 app.use(helmet());
 app.use(
   cors({
@@ -27,8 +28,7 @@ const limiter = ratelimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: "you hit rate limit try after some seconds",
-  validate: { xForwardedForHeader: false } // add this line
-  
+  validate: { xForwardedForHeader: false }, // add this line
 });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
