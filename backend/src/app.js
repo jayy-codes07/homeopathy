@@ -28,11 +28,20 @@ const limiter = ratelimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: "you hit rate limit try after some seconds",
-  validate: { xForwardedForHeader: false }, // add this line
+  validate: { xForwardedForHeader: false }, 
 });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(mongoSanitize());
+
+// Express 5 exposes req.query as a read-only getter, so sanitize in place.
+app.use((req, res, next) => {
+  if (req.body) mongoSanitize.sanitize(req.body);
+  if (req.params) mongoSanitize.sanitize(req.params);
+  if (req.headers) mongoSanitize.sanitize(req.headers);
+  if (req.query) mongoSanitize.sanitize(req.query);
+  next();
+});
+
 app.use(compression());
 app.use(limiter);
 app.use(cookieParser());
