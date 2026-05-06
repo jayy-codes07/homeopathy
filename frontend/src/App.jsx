@@ -1,5 +1,13 @@
 import React from "react";
-import Login from "./components/pages/Login";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import AddPatient from "./pages/AddPatient";
+import Dashboard from "./pages/Dashboard";
+import Patient from "./pages/PatientDetail";
+import Followup from "./pages/AddFollowup";
+import Profile from "./pages/Profile";
+
+
 import { Routes, Route, Navigate } from "react-router-dom";
 
 const App = () => {
