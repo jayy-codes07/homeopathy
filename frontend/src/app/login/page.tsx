@@ -1,6 +1,7 @@
 "use client";
 import Loading from "@/components/Loading";
 import api from "@/utils/api";
+import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 
 interface FormData {
@@ -11,6 +12,7 @@ interface FormData {
 }
 
 const Page = () => {
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState<FormData>({
     fullname: "",
@@ -24,18 +26,27 @@ const Page = () => {
   const handelSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    const saveTokenAndRedirect = async () => {
+      const response = await api.post("/doctor/login", formData);
+      const token = response.data.data.Accesstoken;
+      localStorage.setItem("doctorJWT", token);
+      router.push("/dashboard");
+    };
     try {
       if (isLogin) {
-        const response = await api.post("/doctor/login", formData);
-        const token = response.data.data.???  // what goes here?
-localStorage.setItem('doctorJWT', token)
+        await saveTokenAndRedirect();
       } else {
-        const response = await api.post("/doctor/register", formData);
+        await api.post("/doctor/register", formData);
+        await saveTokenAndRedirect();
       }
     } catch (error: any) {
-      throw new Error("error while sending response to backend", error);
+      setError(
+        error.response?.data?.message ||
+          "error while sending response to backend",
+      );
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return isLoading ? (
@@ -102,8 +113,9 @@ localStorage.setItem('doctorJWT', token)
               }}
             />
           </div>
-          <button type="submit">Login</button>
+          <button type="submit">{isLogin ? "Login" : "Regester"}</button>
           <button
+            type="button"
             onClick={() => {
               setIsLogin((login) => !login);
             }}
@@ -111,6 +123,13 @@ localStorage.setItem('doctorJWT', token)
             {isLogin ? "Dont have Account?" : "Already have account"}
           </button>
         </form>
+        {error && (
+          <p className="text-red-500">
+            {error
+              ? error
+              : "there is problem in connection while sending request"}{" "}
+          </p>
+        )}
       </div>
     </div>
   );
