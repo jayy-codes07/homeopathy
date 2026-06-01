@@ -42,7 +42,7 @@ const Page = () => {
     } catch (error: any) {
       setError(
         error.response?.data?.message ||
-          "error while sending response to backend",
+        "error while sending response to backend",
       );
     } finally {
       setIsLoading(false);
