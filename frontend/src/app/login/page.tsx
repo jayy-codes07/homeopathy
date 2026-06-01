@@ -42,7 +42,7 @@ const Page = () => {
     } catch (error: any) {
       setError(
         error.response?.data?.message ||
-        "error while sending response to backend",
+          "error while sending response to backend",
       );
     } finally {
       setIsLoading(false);
@@ -52,84 +52,141 @@ const Page = () => {
   return isLoading ? (
     <Loading />
   ) : (
-    <div className="flex items-center justify-center flex-col bg-[url('/10554240.jpg')]">
-      <div className="w-[40%] flex justify-center flex-col text-center border-1 border-red-400 p-5">
-        <h1 className="text-3xl font-bold ">
-          {isLogin ? "Login" : "Register"}
-        </h1>{" "}
-        <h2 className="text-xl">
-          {isLogin ? "Welcome Back! Please Enter you details" : ""}
-        </h2>
-        <form onSubmit={handelSubmit}>
-          {!isLogin && (
-            <div className="flex flex-col p-2 w-[50%] self-center ">
-              <label htmlFor="Username">Username</label>
-              <input
-                type="text"
-                className="border-blue-600 border-1 rounded p-2 pl-5"
-                placeholder="Enter Your Username"
-                value={formData.fullname}
-                onChange={(e) => {
-                  setFormData({ ...formData, fullname: e.target.value });
-                }}
-              />
-            </div>
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-blue-100 flex items-center justify-center p-6">
+      <div className="w-full max-w-6xl overflow-hidden rounded-3xl bg-white shadow-2xl grid md:grid-cols-2">
+        {/* Left Side */}
+        <div className="hidden md:flex flex-col justify-center bg-gradient-to-br from-blue-600 to-cyan-500 p-12 text-white">
+          <h1 className="text-5xl font-bold mb-4">Doctor Portal</h1>
 
-          <div className="flex flex-col p-2 w-[50%] self-center ">
-            <label htmlFor="Email">Email</label>
-            <input
-              type="email"
-              className="border-blue-600 border-1 rounded p-2 pl-5"
-              placeholder="Enter Your Registerd Email"
-              value={formData.email}
-              onChange={(e) => {
-                setFormData({ ...formData, email: e.target.value });
-              }}
-            />
-          </div>
-          {!isLogin && (
-            <div className="flex flex-col p-2 w-[50%] self-center ">
-              <label htmlFor="degree">degree</label>
-              <input
-                type="text"
-                className="border-blue-600 border-1 rounded p-2 pl-5"
-                placeholder="Enter Your degree"
-                value={formData.degree}
-                onChange={(e) => {
-                  setFormData({ ...formData, degree: e.target.value });
-                }}
-              />
-            </div>
-          )}
-          <div>
-            <label htmlFor="Password">Password</label>
-            <input
-              type="password"
-              placeholder="Enter Your Password"
-              value={formData.password}
-              onChange={(e) => {
-                setFormData({ ...formData, password: e.target.value });
-              }}
-            />
-          </div>
-          <button type="submit">{isLogin ? "Login" : "Regester"}</button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsLogin((login) => !login);
-            }}
-          >
-            {isLogin ? "Dont have Account?" : "Already have account"}
-          </button>
-        </form>
-        {error && (
-          <p className="text-red-500">
-            {error
-              ? error
-              : "there is problem in connection while sending request"}{" "}
+          <p className="text-lg text-blue-100 leading-relaxed">
+            Manage patients, prescriptions and follow-ups from one centralized
+            dashboard.
           </p>
-        )}
+
+          <img
+            src="/doctor-illustration.svg"
+            alt="Doctor"
+            className="mt-10 max-w-sm"
+          />
+        </div>
+
+        {/* Right Side */}
+        <div className="flex items-center justify-center p-8 md:p-12">
+          <div className="w-full max-w-md">
+            <h2 className="text-3xl font-bold text-slate-900">
+              {isLogin ? "Welcome Back" : "Create Account"}
+            </h2>
+
+            <p className="mt-2 text-slate-500">
+              {isLogin ? "Sign in to continue" : "Register your doctor account"}
+            </p>
+
+            <form onSubmit={handelSubmit} className="mt-8 space-y-5">
+              {!isLogin && (
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                    Full Name
+                  </label>
+
+                  <input
+                    type="text"
+                    placeholder="John Doe"
+                    value={formData.fullname}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        fullname: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Email
+                </label>
+
+                <input
+                  type="email"
+                  placeholder="doctor@email.com"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      email: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                />
+              </div>
+
+              {!isLogin && (
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                    Degree
+                  </label>
+
+                  <input
+                    type="text"
+                    placeholder="MBBS, MD..."
+                    value={formData.degree}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        degree: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Password
+                </label>
+
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      password: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                />
+              </div>
+
+              {error && (
+                <div className="rounded-xl bg-red-50 p-3 text-sm text-red-600">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700"
+              >
+                {isLogin ? "Login" : "Register"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsLogin(!isLogin)}
+                className="w-full text-sm text-blue-600 hover:text-blue-800"
+              >
+                {isLogin
+                  ? "Don't have an account? Register"
+                  : "Already have an account? Login"}
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );
