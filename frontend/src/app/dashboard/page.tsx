@@ -45,7 +45,6 @@ const Page = () => {
     <Loading />
   ) : (
     <div className="min-h-screen bg-slate-50 p-6">
-      {/* Header */}
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Patients</h1>
