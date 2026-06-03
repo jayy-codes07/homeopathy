@@ -12,3 +12,12 @@ export interface Patient {
   occupation?: string;
   followUpDate?: Date;
 }
+
+export interface Followup {
+  _id: string;
+  followUpDate: Date;
+  symptoms: string;
+  advise: string;
+  medicine: string;
+  patientId: string;
+}

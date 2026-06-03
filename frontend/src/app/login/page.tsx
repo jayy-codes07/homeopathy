@@ -2,7 +2,7 @@
 import Loading from "@/components/Loading";
 import api from "@/utils/api";
 import { useRouter } from "next/navigation";
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 
 interface FormData {
   fullname: string;
@@ -23,15 +23,17 @@ const Page = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const saveTokenAndRedirect = async () => {
+    const response = await api.post("/doctor/login", formData);
+    const token = response.data.data.Accesstoken;
+    localStorage.setItem("doctorJWT", token);
+    router.push("/dashboard");
+  };
+
   const handelSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    const saveTokenAndRedirect = async () => {
-      const response = await api.post("/doctor/login", formData);
-      const token = response.data.data.Accesstoken;
-      localStorage.setItem("doctorJWT", token);
-      router.push("/dashboard");
-    };
+
     try {
       if (isLogin) {
         await saveTokenAndRedirect();
@@ -42,12 +44,19 @@ const Page = () => {
     } catch (error: any) {
       setError(
         error.response?.data?.message ||
-          "error while sending response to backend",
+        "error while sending response to backend",
       );
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (localStorage.getItem("doctorJWT")) {
+      router.push("/dashboard");
+
+    }
+  }, [])
 
   return isLoading ? (
     <Loading />
