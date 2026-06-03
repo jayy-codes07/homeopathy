@@ -46,7 +46,7 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
     <div className="bg-[#000000d9] p-4 md:p-8 lg:p-10 font-sans pb-24">
 
       <button
-        onClick={() => router.back()}
+        onClick={() => router.push("patients")}
         className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-600 hover:shadow-sm mb-6 lg:mb-8 transition-all duration-200"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -127,7 +127,7 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
             </span>
           </div>
 
-         <button className="hidden lg:flex bg-[#244165] hover:bg-[#1a304b] text-blue-100 font-medium px-4 py-2.5 rounded-xl shadow transition-all duration-200 hover:scale-105 hover:shadow-md items-center gap-2 text-sm " onClick={() => redirect(`/patients/${patientid}/followup`)}>
+          <button className="hidden lg:flex bg-[#244165] hover:bg-[#1a304b] text-blue-100 font-medium px-4 py-2.5 rounded-xl shadow transition-all duration-200 hover:scale-105 hover:shadow-md items-center gap-2 text-sm " onClick={() => router.push(`/patients/${patientid}/followup`)}>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
               <line x1="16" x2="16" y1="2" y2="6" />
@@ -143,11 +143,11 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
         <div className="space-y-0 lg:max-w-4xl">
           {followups.map((data, idx) => (<div key={idx} className="relative pl-8 pb-8 border-l border-gray-600/50 last:border-transparent last:pb-0 group">
             {/* Timeline Dot */}
-            <div className="absolute w-3.5 h-3.5 rounded-full bg-[#323232] border-[3px] border-[#4e82c5] -left-[7.5px] top-1.5 transition-transform duration-300 group-hover:scale-125"></div>
+            <div className="absolute w-3.5 h-3.5 rounded-full bg-[#323232] border-[3px] border-[#4e82c5] left-[-7.5px] top-1.5 transition-transform duration-300 group-hover:scale-125"></div>
 
             <div className="flex justify-between items-start mb-5">
               <div className="text-lg lg:text-xl font-medium group-hover:text-blue-200 transition-colors duration-200">{data.followUpDate ? new Date(data.followUpDate).toLocaleDateString() : "not set"}</div>
-              {followups[0] ? <span className="bg-[#173a14] text-[#55b749] px-3 py-1 rounded-md text-sm font-medium">Latest</span> : ""}
+              {idx === 0 ? <span className="bg-[#173a14] text-[#55b749] px-3 py-1 rounded-md text-sm font-medium">Latest</span> : null}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
@@ -172,7 +172,7 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
 
       {/* 3. Mobile ONLY Floating Action Button - Hides on laptop screens */}
       <div className="fixed bottom-8 right-8 lg:hidden z-50">
-        <button className="bg-[#244165] hover:bg-[#1a304b] text-blue-100 font-medium px-5 py-3.5 rounded-xl shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-2xl flex items-center gap-2">
+        <button className="bg-[#244165] hover:bg-[#1a304b] text-blue-100 font-medium px-5 py-3.5 rounded-xl shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-2xl flex items-center gap-2" onClick={() => router.push(`/patients/${patientid}/followup`)}>
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
             <line x1="16" x2="16" y1="2" y2="6" />
