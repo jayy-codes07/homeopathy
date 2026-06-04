@@ -26,7 +26,9 @@ const Page = () => {
   const saveTokenAndRedirect = async () => {
     const response = await api.post("/doctor/login", formData);
     const token = response.data.data.Accesstoken;
+    const username = response.data.data.doctor.fullname
     localStorage.setItem("doctorJWT", token);
+    localStorage.setItem("username", username);
     router.push("/dashboard");
   };
 
