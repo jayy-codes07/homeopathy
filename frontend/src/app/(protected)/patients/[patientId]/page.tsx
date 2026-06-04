@@ -46,7 +46,7 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
     <div className="bg-[#000000d9] p-4 md:p-8 lg:p-10 font-sans pb-24">
 
       <button
-        onClick={() => router.push("patients")}
+        onClick={() => router.push("/dashboard")}
         className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-600 hover:shadow-sm mb-6 lg:mb-8 transition-all duration-200"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -7,6 +7,7 @@ const Navbar = () => {
     const [username, setUsername] = useState<string>('User')
     const router = useRouter()
     const logout = () => {
+        alert("are you sure you want to logout")
         localStorage.removeItem('doctorJWT')
         router.push('/login')
     }
@@ -24,9 +25,9 @@ const Navbar = () => {
             <div>
                 <h1 className="text-2xl font-bold text-white">
                     <img
-                        src="/doctor-medical-mk-seeklogo.jpg"
+                        src="/doctor-medical-mk-seeklogo.png"
                         alt=""
-                        className="h-15 bg-amber-50 w-auto"
+                        className="h-20 w-auto"
                     />
                 </h1>
 

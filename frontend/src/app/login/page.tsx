@@ -63,138 +63,134 @@ const Page = () => {
   return isLoading ? (
     <Loading />
   ) : (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-blue-100 flex items-center justify-center p-6">
-      <div className="w-full max-w-6xl overflow-hidden rounded-3xl bg-white shadow-2xl grid md:grid-cols-2">
-        {/* Left Side */}
-        <div className="hidden md:flex flex-col justify-center bg-gradient-to-br from-blue-600 to-cyan-500 p-12 text-white">
-          <h1 className="text-5xl font-bold mb-4">Doctor Portal</h1>
-
-          <p className="text-lg text-blue-100 leading-relaxed">
-            Manage patients, prescriptions and follow-ups from one centralized
-            dashboard.
-          </p>
-
-          <img
-            src="/doctor-illustration.svg"
-            alt="Doctor"
-            className="mt-10 max-w-sm"
-          />
+   <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+      {/* Main Card */}
+      <div className="w-full max-w-5xl flex flex-col md:flex-row bg-zinc-800 rounded-3xl shadow-2xl overflow-hidden border border-zinc-700/50">
+        
+        {/* Left Side - Branding (Hidden on Mobile) */}
+        <div className="hidden md:flex md:w-5/12 flex-col justify-center bg-zinc-900 p-12 relative border-r border-zinc-700/50">
+          {/* Subtle background glow effect to match your blue accents */}
+          <div className="absolute top-0 left-0 w-full h-full bg-blue-900/10 pointer-events-none"></div>
+          
+          <div className="relative z-10">
+            <h1 className="text-4xl font-bold text-white mb-4">
+              Doctor Portal
+            </h1>
+            <p className="text-lg text-zinc-400 leading-relaxed mb-10">
+              Manage patients, prescriptions, and follow-ups from one sleek, centralized dashboard.
+            </p>
+            
+            {/* Optional: You can keep your illustration here, or use an abstract medical icon pattern */}
+           
+          </div>
         </div>
 
-        {/* Right Side */}
-        <div className="flex items-center justify-center p-8 md:p-12">
+        {/* Right Side - Form */}
+        <div className="w-full md:w-7/12 p-8 md:p-14 flex items-center justify-center">
           <div className="w-full max-w-md">
-            <h2 className="text-3xl font-bold text-slate-900">
-              {isLogin ? "Welcome Back" : "Create Account"}
-            </h2>
+            
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-white">
+                {isLogin ? "Welcome Back" : "Create Account"}
+              </h2>
+              <p className="mt-2 text-sm text-zinc-400">
+                {isLogin ? "Sign in to access your dashboard" : "Register your doctor account to get started"}
+              </p>
+            </div>
 
-            <p className="mt-2 text-slate-500">
-              {isLogin ? "Sign in to continue" : "Register your doctor account"}
-            </p>
-
-            <form onSubmit={handelSubmit} className="mt-8 space-y-5">
+            <form onSubmit={handelSubmit} className="space-y-6">
+              
               {!isLogin && (
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                  <label className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
                     Full Name
                   </label>
-
                   <input
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Dr. John Doe"
                     value={formData.fullname}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        fullname: e.target.value,
-                      })
+                      setFormData({ ...formData, fullname: e.target.value })
                     }
-                    className="w-full text-[#000000e0] rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
                   />
                 </div>
               )}
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
+                <label className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
                   Email
                 </label>
-
                 <input
                   type="email"
                   placeholder="doctor@email.com"
                   value={formData.email}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      email: e.target.value,
-                    })
+                    setFormData({ ...formData, email: e.target.value })
                   }
-                  className="w-full rounded-xl text-[#000000e0] border border-slate-200 px-4 py-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
                 />
               </div>
 
               {!isLogin && (
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                  <label className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
                     Degree
                   </label>
-
                   <input
                     type="text"
                     placeholder="MBBS, MD..."
                     value={formData.degree}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        degree: e.target.value,
-                      })
+                      setFormData({ ...formData, degree: e.target.value })
                     }
-                    className="w-full text-[#000000e0] rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
                   />
                 </div>
               )}
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
+                <label className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
                   Password
                 </label>
-
                 <input
                   type="password"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      password: e.target.value,
-                    })
+                    setFormData({ ...formData, password: e.target.value })
                   }
-                  className="w-full text-[#000000e0] rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
                 />
               </div>
 
               {error && (
-                <div className="rounded-xl bg-red-50 p-3 text-sm text-red-600">
+                <div className="bg-red-900/30 border border-red-700 text-red-400 rounded-xl p-3 text-sm">
                   {error}
                 </div>
               )}
 
-              <button
-                type="submit"
-                className="w-full rounded-xl bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700"
-              >
-                {isLogin ? "Login" : "Register"}
-              </button>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full py-4 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 transition duration-200 text-white shadow-lg shadow-blue-900/20"
+                >
+                  {isLogin ? "Login" : "Register"}
+                </button>
+              </div>
 
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="w-full text-sm text-blue-600 hover:text-blue-800"
-              >
-                {isLogin
-                  ? "Don't have an account? Register"
-                  : "Already have an account? Login"}
-              </button>
+              <div className="text-center mt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsLogin(!isLogin)}
+                  className="text-sm text-zinc-400 hover:text-blue-400 transition-colors duration-200"
+                >
+                  {isLogin
+                    ? "Don't have an account? Register here"
+                    : "Already have an account? Login here"}
+                </button>
+              </div>
+
             </form>
           </div>
         </div>
