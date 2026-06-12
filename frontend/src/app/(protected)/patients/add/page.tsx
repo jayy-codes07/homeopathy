@@ -5,6 +5,7 @@ import { Patient } from "@/types";
 import Loading from "@/components/Loading";
 import api from "@/utils/api";
 import { useRouter } from "next/navigation";
+import PatientForm from "@/components/PatientForm";
 type PatientForm = Omit<Patient, "_id">;
 
 const Page = () => {
@@ -22,25 +23,18 @@ const Page = () => {
     followUpDate: new Date(),
   });
   const [error, setError] = useState("");
-  const [pauseClick, setPauseClick] = useState(false)
+  const [loading, setLoading] = useState(false)
   const router = useRouter();
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault()
-    const createNewPatient = async () => {
-      const response = await api.post("/patient/register", patient)
-      router.push(`/patients/${response.data.data._id}`);
-    }
+  const handleSubmit = async (data: PatientForm) => {
     try {
-      setPauseClick(true)
-      await createNewPatient()
-      setPauseClick(false)
-
+      setLoading(true);
+      const response = await api.post("/patient/register", data);
+      router.push(`/patients/${response.data.data._id}`);
     } catch (error: any) {
-      setError(
-        error.response?.data?.message ||
-        "error while sending response to backend",
-      );
+      setError(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -258,6 +252,7 @@ const Page = () => {
           </div>
         </form>
       </div>
+      <PatientForm mode="add" onSubmit={handleSubmit} loading={loading} error={error} />
     </div>
   );
 };

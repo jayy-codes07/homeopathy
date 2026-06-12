@@ -147,7 +147,7 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
 
             <div className="flex justify-between items-start mb-5">
               <div className="text-lg lg:text-xl font-medium group-hover:text-blue-200 transition-colors duration-200">{data.followUpDate ? new Date(data.followUpDate).toLocaleDateString() : "not set"}</div>
-              {idx === 0 ? <span className="bg-[#173a14] text-[#55b749] px-3 py-1 rounded-md text-sm font-medium">Latest</span> : null}
+              {/* {idx === 0 ? <span className="bg-[#173a14] text-[#55b749] px-3 py-1 rounded-md text-sm font-medium">Latest</span> : null} */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
