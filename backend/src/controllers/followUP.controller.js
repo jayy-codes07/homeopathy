@@ -101,4 +101,26 @@ const updatePatientFollowup = asyncHandler(async (req, res) => {
     );
 });
 
-export { createFollowup, getPatientFollowup, updatePatientFollowup };
+const deltePatientFollowup = asyncHandler(async (req, res) => {
+  const { followupId } = req.params;
+  //  verify
+  if (!isValidObjectId(followupId)) {
+    throw new ApiError(400, "provide valid followup id");
+  }
+  const followUP = await FollowUP.findByIdAndDelete(followupId);
+
+  if (!followUP) {
+    throw new ApiError(500, "followup does not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, followUP, "follow up deleted successfully"));
+});
+
+export {
+  createFollowup,
+  getPatientFollowup,
+  updatePatientFollowup,
+  deltePatientFollowup,
+};

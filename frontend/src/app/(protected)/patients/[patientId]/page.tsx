@@ -39,14 +39,25 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
 
   const handleDeletePatient = async () => {
     try {
-
-      await api.delete(`/patient/${patientid}`)
       const confirmed = confirm("Are you sure you want to delete this patient?")
       if (!confirmed) return
+      await api.delete(`/patient/${patientid}`)
+
       // 2. redirect to dashboard
       router.push("/dashboard")
 
     } catch (error: any) {
+      setError(error.response?.data?.message || "Failed to delete patient")
+    }
+  }
+  const handleDeletefollowup = async (id: string) => {
+    try {
+      const confirmed = confirm("Are you sure you want to delete this patient?")
+      if (!confirmed) return
+      await api.delete(`/followup/patient-followup/${id}`)
+
+    } catch (error: any) {
+      console.log(error.response)
       setError(error.response?.data?.message || "Failed to delete patient")
     }
   }
@@ -265,6 +276,12 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
                   </div>
 
                   <div className="flex justify-end mt-4">
+                    <div>
+                      <button className='flex bg-[#244165] hover:bg-[#1a304b] text-blue-100 font-medium px-4 py-2.5 rounded-xl shadow transition-all duration-200 hover:scale-105 hover:shadow-md items-center gap-2 text-sm'
+                        onClick={() => handleDeletefollowup(data._id)}>
+                        Delete
+                      </button>
+                    </div>
                     <button
                       className="flex bg-[#244165] hover:bg-[#1a304b] text-blue-100 font-medium px-4 py-2.5 rounded-xl shadow transition-all duration-200 hover:scale-105 hover:shadow-md items-center gap-2 text-sm"
                       onClick={() => {
