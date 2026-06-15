@@ -52,7 +52,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// app.use("/api/v1/user", userRoute);
+
 app.use("/api/v1/patient", patientRoute);
 app.use("/api/v1/doctor", doctorRoute);
 app.use("/api/v1/followup", followUpRoute);
