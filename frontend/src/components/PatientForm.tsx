@@ -96,7 +96,7 @@ const PatientForm = ({ mode, initialData, onSubmit, loading, error }: PatientFor
                         required
                         className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors appearance-none"
                         value={patient.gender}
-                        onChange={(e) => setPatient({ ...patient, gender: e.target.value })}
+                        onChange={(e) => setPatient({ ...patient, gender: e.target.value as "MALE" | "FEMALE" | "OTHER" })}
                     >
                         <option value="MALE">Male</option>
                         <option value="FEMALE">Female</option>
@@ -156,7 +156,7 @@ const PatientForm = ({ mode, initialData, onSubmit, loading, error }: PatientFor
                         id="diet"
                         className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors appearance-none"
                         value={patient.diet}
-                        onChange={(e) => setPatient({ ...patient, diet: e.target.value })}
+                        onChange={(e) => setPatient({ ...patient, diet: e.target.value as Patient["diet"] })}
                     >
                         <option value="VEG">Veg</option>
                         <option value="NON VEG">Non-Veg</option>
@@ -211,11 +211,13 @@ const PatientForm = ({ mode, initialData, onSubmit, loading, error }: PatientFor
                 </div>
             </div>
 
-            {error && (
-                <div className="bg-red-900/30 border border-red-700 text-red-400 rounded-xl p-4 mt-2">
-                    <p className="text-sm font-medium">{error}</p>
-                </div>
-            )}
+            {
+                error && (
+                    <div className="bg-red-900/30 border border-red-700 text-red-400 rounded-xl p-4 mt-2">
+                        <p className="text-sm font-medium">{error}</p>
+                    </div>
+                )
+            }
 
             <div className="pt-4 border-t border-zinc-700/50">
                 <button
@@ -233,8 +235,8 @@ const PatientForm = ({ mode, initialData, onSubmit, loading, error }: PatientFor
                     }
                 </button>
             </div>
-        </form>
-    </div>
+        </form >
+    </div >
 
 }
 
