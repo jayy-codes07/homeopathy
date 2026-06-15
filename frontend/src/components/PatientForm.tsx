@@ -31,9 +31,9 @@ const PatientForm = ({ mode, initialData, onSubmit, loading, error }: PatientFor
         onSubmit(patient)
     }
 
-    return <div className="max-w-4xl mx-auto bg-zinc-800 rounded-2xl p-8 shadow-lg">
+    return <div className="mx-5 bg-zinc-800 rounded-2xl p-8 shadow-lg mb-8">
         <div className="mb-8 border-b border-zinc-700/50 pb-6">
-            <h1 className="text-3xl font-bold">Patient Registration</h1>
+            <h1 className="text-3xl font-bold">{mode === "add" ? "Patient Registration" : "Edit Patient"}</h1>
             <p className="text-zinc-400 text-sm mt-1">
                 Enter the details below to register a new patient into the system.
             </p>
@@ -202,9 +202,9 @@ const PatientForm = ({ mode, initialData, onSubmit, loading, error }: PatientFor
                         name="followUpDate"
                         className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors [color-scheme:dark]"
                         value={
-                            patient.followUpDate instanceof Date
-                                ? patient.followUpDate.toISOString().split("T")[0]
-                                : patient.followUpDate
+                            patient.followUpDate
+                                ? new Date(patient.followUpDate).toISOString().split("T")[0]
+                                : ""
                         }
                         onChange={(e) => setPatient({ ...patient, followUpDate: new Date(e.target.value) })}
                     />

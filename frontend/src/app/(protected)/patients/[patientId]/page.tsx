@@ -5,12 +5,15 @@ import { Followup, Patient } from '@/types'
 import api from '@/utils/api'
 import Loading from '@/components/Loading'
 import { useRouter } from 'next/navigation'
+import PatientForm from '@/components/PatientForm'
 
 const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
   const patientid = use(params).patientId
 
   const [patient, setPatient] = useState<Patient>()
   const [followups, setFollowups] = useState<Followup[]>([])
+  const [showEdit, setShowEdit] = useState(false)
+  const [editLoading, setEditLoading] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editData, setEditData] = useState<Followup | null>(null)
   const [loading, setLoading] = useState(false)
@@ -34,6 +37,20 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
     fetchData()
   }, [])
 
+  const handleDeletePatient = async () => {
+    try {
+
+      await api.delete(`/patient/${patientid}`)
+      const confirmed = confirm("Are you sure you want to delete this patient?")
+      if (!confirmed) return
+      // 2. redirect to dashboard
+      router.push("/dashboard")
+
+    } catch (error: any) {
+      setError(error.response?.data?.message || "Failed to delete patient")
+    }
+  }
+
   const handleSaveFollowup = async (id: string) => {
     if (!editData) return   // safety check
     try {
@@ -45,21 +62,46 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
     }
   }
 
+  const handleEditPatient = async (data: Omit<Patient, "_id">) => {
+    try {
+      setEditLoading(true)
+      await api.patch(`/patient/${patientid}`, data)
+      setPatient({ ...data, _id: patient!._id })
+      setShowEdit(false)
+    } catch (error: any) {
+      setError(error.response?.data?.message || "Failed to update patient")
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
   if (loading) return <Loading />
 
   return (
     <div className="bg-[#000000d9] p-4 md:p-8 lg:p-10 font-sans pb-24">
 
       {/* Back Button */}
-      <button
-        onClick={() => router.push("/dashboard")}
-        className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-600 hover:shadow-sm mb-6 lg:mb-8 transition-all duration-200"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="m15 18-6-6 6-6" />
-        </svg>
-        Back
-      </button>
+      <div className='flex justify-between py-2'>
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-600 hover:shadow-sm mb-6 lg:mb-8 transition-all duration-200"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+          Back
+        </button>
+        <div className='flex gap-5 items-center justify-center  '>
+          <button className='flex items-center gap-2 mb-6 lg:mb-8 font-medium px-4 py-2.5 rounded-xl shadow transition-all duration-200 hover:scale-105 text-sm bg-red-700 hover:bg-red-800 text-white' onClick={handleDeletePatient}>
+            delete Patient
+          </button>
+          <button
+            onClick={() => setShowEdit(true)}
+            className="flex items-center gap-2 mb-6 lg:mb-8  bg-[#244165] hover:bg-[#1a304b] text-blue-100 font-medium px-4 py-2.5 rounded-xl shadow transition-all duration-200 hover:scale-105 text-sm"
+          >
+            Edit Patient
+          </button></div>
+      </div>
 
       {/* Patient Header Card */}
       <div className="bg-[#323232] rounded-2xl p-6 lg:p-8 flex flex-col md:flex-row md:items-center justify-between text-white mb-6 lg:mb-8 gap-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
@@ -89,9 +131,17 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
           </div>
         </div>
       </div>
-
+      {showEdit && (
+        <PatientForm
+          mode="edit"
+          initialData={patient}
+          onSubmit={handleEditPatient}
+          loading={editLoading}
+          error={error}
+        />
+      )}
       {/* Diagnosis, Medicine, Diet */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-4 lg:mb-6">
+      {!showEdit && <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-4 lg:mb-6">
         <div className="bg-[#323232] rounded-2xl p-5 lg:p-6 border-l-4 border-[#cf6666] shadow-sm text-white transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
           <div className="text-xs text-[#cf6666] uppercase tracking-widest font-semibold mb-2">Diagnosis</div>
           <div className="text-lg lg:text-xl">{patient?.diagnosis}</div>
@@ -104,10 +154,10 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
           <div className="text-xs text-[#769e55] uppercase tracking-widest font-semibold mb-2">Diet</div>
           <div className="text-lg lg:text-xl">{patient?.diet}</div>
         </div>
-      </div>
+      </div>}
 
       {/* Occupation, Family Size, Address */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-10">
+      {!showEdit && <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-10">
         <div className="bg-[#323232] rounded-2xl p-5 lg:p-6 shadow-sm text-white transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-default">
           <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">Occupation</div>
           <div className="text-lg lg:text-xl">{patient?.occupation}</div>
@@ -120,7 +170,7 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
           <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">Address</div>
           <div className="text-lg lg:text-xl">{patient?.address}</div>
         </div>
-      </div>
+      </div>}
 
       {/* Followup History */}
       <div className="bg-[#323232] rounded-2xl p-6 lg:p-8 shadow-sm text-white transition-all duration-300 hover:shadow-lg">
