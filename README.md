@@ -3,6 +3,7 @@
 A full-stack web app built to help homeopathy doctors manage their patients and track followup history. Built this as a portfolio project to practice building a complete system from scratch — auth, file uploads, pagination, and all.
 
 **Live:** https://homeopathy-dfcotz8uz-jayy-codes07s-projects.vercel.app/
+
 **Backend API:** https://homeopathy-9hau.onrender.com/api/v1
 
 ---
