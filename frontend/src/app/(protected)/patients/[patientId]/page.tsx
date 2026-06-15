@@ -55,7 +55,7 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
       const confirmed = confirm("Are you sure you want to delete this patient?")
       if (!confirmed) return
       await api.delete(`/followup/patient-followup/${id}`)
-
+      setFollowups(prev => prev.filter(f => f._id !== id))
     } catch (error: any) {
       console.log(error.response)
       setError(error.response?.data?.message || "Failed to delete patient")
@@ -67,7 +67,7 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
     try {
       await api.patch(`/followup/patient-followup/${id}`, editData)
       setEditingId(null)
-      setFollowups(followups.map(f => f._id === id ? editData : f))
+      setFollowups(prev => prev.map(f => f._id === id ? editData : f))
     } catch (error: any) {
       setError(error.response?.data?.message || "Failed to update followup")
     }
