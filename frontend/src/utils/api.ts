@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://homeopathy-9hau.onrender.com/api/v1/",
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
 api.interceptors.request.use((config) => {
@@ -16,11 +16,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.data?.message === "jwt expired") {
-      localStorage.removeItem("doctorJWT")
-      window.location.href = "/login"
+      localStorage.removeItem("doctorJWT");
+      window.location.href = "/login";
     }
-    return Promise.reject(error)
-  }
-)
+    return Promise.reject(error);
+  },
+);
 
 export default api;
