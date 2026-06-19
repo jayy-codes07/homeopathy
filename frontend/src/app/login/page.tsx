@@ -22,6 +22,7 @@ const Page = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // NEW: only for the eye-icon toggle, no backend impact
 
   const saveTokenAndRedirect = async () => {
     const response = await api.post("/doctor/login", formData);
@@ -63,136 +64,146 @@ const Page = () => {
   return isLoading ? (
     <Loading />
   ) : (
-   <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
-      {/* Main Card */}
-      <div className="w-full max-w-5xl flex flex-col md:flex-row bg-zinc-800 rounded-3xl shadow-2xl overflow-hidden border border-zinc-700/50">
-        
-        {/* Left Side - Branding (Hidden on Mobile) */}
-        <div className="hidden md:flex md:w-5/12 flex-col justify-center bg-zinc-900 p-12 relative border-r border-zinc-700/50">
-          {/* Subtle background glow effect to match your blue accents */}
-          <div className="absolute top-0 left-0 w-full h-full bg-blue-900/10 pointer-events-none"></div>
-          
-          <div className="relative z-10">
-            <h1 className="text-4xl font-bold text-white mb-4">
-              Doctor Portal
-            </h1>
-            <p className="text-lg text-zinc-400 leading-relaxed mb-10">
-              Manage patients, prescriptions, and follow-ups from one sleek, centralized dashboard.
-            </p>
-            
-            {/* Optional: You can keep your illustration here, or use an abstract medical icon pattern */}
-           
-          </div>
-        </div>
+    <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center p-4 md:p-12 font-sans text-[var(--color-on-surface)] antialiased relative overflow-hidden">
+      {/* Subtle background blobs, matches Lumina design system */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-[var(--color-surface-container-highest)] rounded-full blur-[100px] opacity-30"></div>
+        <div className="absolute bottom-[-10%] left-[-5%] w-[30%] h-[30%] bg-[var(--color-primary-container)] rounded-full blur-[120px] opacity-10"></div>
+      </div>
 
-        {/* Right Side - Form */}
-        <div className="w-full md:w-7/12 p-8 md:p-14 flex items-center justify-center">
-          <div className="w-full max-w-md">
-            
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-white">
-                {isLogin ? "Welcome Back" : "Create Account"}
-              </h2>
-              <p className="mt-2 text-sm text-zinc-400">
-                {isLogin ? "Sign in to access your dashboard" : "Register your doctor account to get started"}
-              </p>
+      {/* Auth Card */}
+      <div className="w-full max-w-md relative z-10">
+        <div className="bg-[var(--color-surface-container-lowest)] rounded-xl shadow-[0_8px_24px_rgba(26,28,27,0.08)] p-8 md:p-10 border border-[var(--color-surface-container-highest)] relative overflow-hidden">
+
+          {/* Logo & Header */}
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[color:var(--color-primary-container)]/20 mb-3">
+              <span
+                className="material-symbols-outlined text-[var(--color-primary)] text-3xl"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                local_florist
+              </span>
             </div>
+            <h1 className="text-2xl font-semibold text-[var(--color-on-surface)] mb-1">
+              {isLogin ? "Welcome Back" : "Create Doctor Account"}
+            </h1>
+            <p className="text-sm text-[var(--color-on-surface-variant)]">
+              {isLogin
+                ? "Sign in to access your dashboard"
+                : "Register your doctor account to get started"}
+            </p>
+          </div>
 
-            <form onSubmit={handelSubmit} className="space-y-6">
-              
-              {!isLogin && (
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Dr. John Doe"
-                    value={formData.fullname}
-                    onChange={(e) =>
-                      setFormData({ ...formData, fullname: e.target.value })
-                    }
-                    className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
-                  />
-                </div>
-              )}
+          {/* Form */}
+          <form onSubmit={handelSubmit} className="space-y-5">
 
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                  Email
+            {!isLogin && (
+              <div className="space-y-1">
+                <label className="block text-sm font-semibold text-[var(--color-on-surface-variant)]">
+                  Full Name
                 </label>
                 <input
-                  type="email"
-                  placeholder="doctor@email.com"
-                  value={formData.email}
+                  type="text"
+                  placeholder="Dr. John Doe"
+                  value={formData.fullname}
                   onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
+                    setFormData({ ...formData, fullname: e.target.value })
                   }
-                  className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
+                  className="w-full rounded-lg px-4 py-[10px] border border-[var(--color-outline-variant)] bg-transparent text-[var(--color-on-surface)] placeholder-[var(--color-outline)] focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] outline-none transition-all"
                 />
               </div>
+            )}
 
-              {!isLogin && (
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                    Degree
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="MBBS, MD..."
-                    value={formData.degree}
-                    onChange={(e) =>
-                      setFormData({ ...formData, degree: e.target.value })
-                    }
-                    className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
-                  />
-                </div>
-              )}
+            <div className="space-y-1">
+              <label className="block text-sm font-semibold text-[var(--color-on-surface-variant)]">
+                Email Address
+              </label>
+              <input
+                type="email"
+                placeholder="practitioner@clinic.com"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                className="w-full rounded-lg px-4 py-[10px] border border-[var(--color-outline-variant)] bg-transparent text-[var(--color-on-surface)] placeholder-[var(--color-outline)] focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] outline-none transition-all"
+              />
+            </div>
 
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                  Password
+            {!isLogin && (
+              <div className="space-y-1">
+                <label className="block text-sm font-semibold text-[var(--color-on-surface-variant)]">
+                  Degree
                 </label>
                 <input
-                  type="password"
+                  type="text"
+                  placeholder="MBBS, MD..."
+                  value={formData.degree}
+                  onChange={(e) =>
+                    setFormData({ ...formData, degree: e.target.value })
+                  }
+                  className="w-full rounded-lg px-4 py-[10px] border border-[var(--color-outline-variant)] bg-transparent text-[var(--color-on-surface)] placeholder-[var(--color-outline)] focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] outline-none transition-all"
+                />
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <label className="block text-sm font-semibold text-[var(--color-on-surface-variant)]">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
+                  className="w-full rounded-lg px-4 py-[10px] border border-[var(--color-outline-variant)] bg-transparent text-[var(--color-on-surface)] focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] outline-none transition-all"
                 />
-              </div>
-
-              {error && (
-                <div className="bg-red-900/30 border border-red-700 text-red-400 rounded-xl p-3 text-sm">
-                  {error}
-                </div>
-              )}
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  className="w-full py-4 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 transition duration-200 text-white shadow-lg shadow-blue-900/20"
-                >
-                  {isLogin ? "Login" : "Register"}
-                </button>
-              </div>
-
-              <div className="text-center mt-4">
                 <button
                   type="button"
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-sm text-zinc-400 hover:text-blue-400 transition-colors duration-200"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-outline)] hover:text-[var(--color-on-surface)] transition-colors"
                 >
-                  {isLogin
-                    ? "Don't have an account? Register here"
-                    : "Already have an account? Login here"}
+                  <span className="material-symbols-outlined text-xl">
+                    {showPassword ? "visibility" : "visibility_off"}
+                  </span>
                 </button>
               </div>
+            </div>
 
-            </form>
+            {error && (
+              <div className="bg-[var(--color-error-container)] border border-[color:var(--color-error)]/20 text-[var(--color-on-error-container)] rounded-lg p-3 text-sm">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-[var(--color-primary)] hover:opacity-90 text-[var(--color-on-primary)] font-semibold py-3 rounded-lg transition-all duration-200 shadow-sm mt-2 flex justify-center items-center group"
+            >
+              {isLogin ? "Sign In" : "Create Account"}
+              <span className="material-symbols-outlined ml-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
+                arrow_forward
+              </span>
+            </button>
+          </form>
+
+          {/* Footer toggle */}
+          <div className="mt-6 text-center border-t border-[var(--color-surface-container-highest)] pt-4">
+            <p className="text-sm text-[var(--color-on-surface-variant)]">
+              {isLogin ? "New to the clinic? " : "Already have an account? "}
+              <button
+                type="button"
+                onClick={() => setIsLogin(!isLogin)}
+                className="font-semibold text-[var(--color-secondary)] hover:opacity-75 transition-colors ml-1"
+              >
+                {isLogin ? "Register Clinic" : "Sign In"}
+              </button>
+            </p>
           </div>
+
         </div>
       </div>
     </div>
