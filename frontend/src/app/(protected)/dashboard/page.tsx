@@ -72,13 +72,13 @@ const Page = () => {
   const [patient, setPatient] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState(""); // NEW: search now hits the backend, debounced so it doesn't fire on every keystroke
-  const [currentPage, setCurrentPage] = useState(1); // NEW
-  const [totalPages, setTotalPages] = useState(1); // NEW
-  const [totalPatients, setTotalPatients] = useState(0); // NEW
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalPatients, setTotalPatients] = useState(0);
   const [error, setError] = useState("");
   const [doctorName, setDoctorName] = useState("");
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false); // NEW: lets us tell "first load" apart from "refetching after search/page change"
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const router = useRouter();
 
   const functionFetchData = async (page: number, searchTerm: string) => {
@@ -86,9 +86,6 @@ const Page = () => {
       params: { page, limit: LIMIT, search: searchTerm },
     });
     const data = patientData.data.data;
-    // Backend returns a plain [] (not the usual { patient, totalPatients, ... } object)
-    // when there are zero patients in the whole collection — handle that shape here
-    // so .map()/.filter() never run on undefined.
     if (Array.isArray(data)) {
       setPatient([]);
       setTotalPages(1);
@@ -100,24 +97,20 @@ const Page = () => {
     setTotalPatients(data.totalPatients);
   };
 
-  // One-time: auth check + doctor name for greeting
   useEffect(() => {
     setDoctorName(localStorage.getItem("username") || "");
     if (!localStorage.getItem("doctorJWT")) router.push("login");
   }, []);
 
-  // Debounce the raw search input before it triggers a fetch
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 400);
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Any time the debounced search changes, jump back to page 1
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch]);
 
-  // Actual fetch — runs whenever the page or the (debounced) search changes
   useEffect(() => {
     const load = async () => {
       try {
@@ -140,13 +133,8 @@ const Page = () => {
     load();
   }, [currentPage, debouncedSearch]);
 
-  // No more client-side filtering — the backend already returns only matching, paginated results
   const filtered = patient;
 
-  // Derived stats now only reflect the CURRENT PAGE, not your whole patient base —
-  // flagging this clearly since it's a behavior change from before pagination existed.
-  // If you want these to reflect ALL patients again, the backend would need a separate
-  // lightweight "stats" endpoint that counts across the full collection.
   const overdueCount = patient.filter((p) => {
     if (!p.followUpDate) return false;
     return new Date(p.followUpDate).getTime() < new Date().getTime();
