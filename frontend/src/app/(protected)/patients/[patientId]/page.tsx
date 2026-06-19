@@ -119,7 +119,7 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
       <div className="bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/40 shadow-[0_2px_8px_rgba(26,28,27,0.06)] rounded-2xl p-6 lg:p-8 flex flex-col md:flex-row md:items-center justify-between text-[var(--color-on-surface)] mb-6 lg:mb-8 gap-6">
         <div className="flex items-center gap-5 lg:gap-6">
           <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-[color:var(--color-primary-container)]/30 border border-[var(--color-primary-container)] flex items-center justify-center text-xl lg:text-2xl font-bold text-[var(--color-on-primary-container)]">
-            {patient?.patientName.split(" ").map((n) => n[0]).join("").toUpperCase() || ""}
+            {patient?.patientName.split(" ").splice(0, 2).map((n) => n[0]).join("").toUpperCase() || ""}
           </div>
           <div>
             <h1 className="text-2xl lg:text-3xl font-semibold mb-2 lg:mb-3 text-[var(--color-on-surface)]">{patient?.patientName}</h1>
