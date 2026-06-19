@@ -7,7 +7,8 @@ const Navbar = () => {
     const [username, setUsername] = useState<string>('User')
     const router = useRouter()
     const logout = () => {
-        alert("are you sure you want to logout")
+        const confirmed = confirm("Are you sure you want to logout?")
+        if (!confirmed) return
         localStorage.removeItem('doctorJWT')
         router.push('/login')
     }
@@ -19,46 +20,43 @@ const Navbar = () => {
 
     }, [])
 
-    return (<nav className="">
-        <div className="bg-zinc-800 px-8 py-5 flex justify-between items-center">
+    return (
+        <nav className="bg-[var(--color-surface-container-lowest)] border-b border-[var(--color-outline-variant)]/40">
+            <div className="px-6 md:px-8 py-3 flex justify-between items-center">
 
-            <div>
-                <h1 className="text-2xl font-bold text-white">
-                    <img
-                        src="/doctor-medical-mk-seeklogo.png"
-                        alt=""
-                        className="h-20 w-auto"
-                    />
-                </h1>
+                <img
+                    src="/doctor-medical-mk-seeklogo.png"
+                    alt="Clinic logo"
+                    className="h-10 w-auto"
+                />
 
+                <div className="flex items-center gap-4">
 
-            </div>
-
-            <div className="flex items-center gap-4">
-
-                <div className="w-12 h-12 rounded-full bg-blue-900 text-blue-400 flex items-center justify-center text-lg font-bold">
-                    {username?.charAt(0).toUpperCase()}
-                </div>
-
-                <div>
-                    <div className="text-xs uppercase tracking-wider text-zinc-500">
-                        User
+                    <div className="w-10 h-10 rounded-full bg-[color:var(--color-primary-container)]/30 text-[var(--color-on-primary-container)] flex items-center justify-center text-base font-bold flex-shrink-0">
+                        {username?.charAt(0).toUpperCase()}
                     </div>
-                    <div className="text-white font-semibold">
-                        {username}
+
+                    <div className="hidden sm:block">
+                        <div className="text-[10px] uppercase tracking-wider text-[var(--color-on-surface-variant)] leading-none mb-0.5">
+                            Doctor
+                        </div>
+                        <div className="text-[var(--color-on-surface)] font-semibold text-sm">
+                            {username}
+                        </div>
                     </div>
+
+                    <button
+                        onClick={logout}
+                        className="flex items-center gap-1.5 border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] px-4 py-2 rounded-xl hover:bg-[var(--color-surface-container-low)] hover:text-[var(--color-on-surface)] transition-all duration-200 text-sm font-medium"
+                    >
+                        <span className="material-symbols-outlined text-base">logout</span>
+                        Logout
+                    </button>
+
                 </div>
-
-                <button
-                    onClick={logout}
-                    className="bg-blue-900/40 border border-blue-700 text-blue-400 px-4 py-2 rounded-xl hover:bg-blue-900/70 transition"
-                >
-                    Logout
-                </button>
-
             </div>
-        </div>
-    </nav>)
+        </nav>
+    )
 }
 
 export default Navbar

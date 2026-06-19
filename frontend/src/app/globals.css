@@ -1,54 +1,64 @@
 @import "tailwindcss";
 
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  /* Lumina design system — change colors here, nowhere else */
+  --color-background: #faf9f7;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f4f3f1;
+  --color-surface-container: #efeeec;
+  --color-surface-container-high: #e9e8e6;
+  --color-surface-container-highest: #e3e2e0;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-on-surface: #1a1c1b;
+  --color-on-surface-variant: #424842;
+  --color-outline: #737972;
+  --color-outline-variant: #c2c8c0;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0abe;
-    --foreground: #ededed;
-  }
+  --color-primary: #4a654f;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #8daa91;
+  --color-on-primary-container: #253f2b;
+
+  --color-secondary: #296767;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #b0eeed;
+  --color-on-secondary-container: #306e6d;
+
+  --color-tertiary: #904d00;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #f08921;
+  --color-on-tertiary-container: #5a2e00;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  --font-sans: 'Public Sans', sans-serif;
 }
 
 body {
+  font-family: var(--font-sans);
+}
+body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
- }
+  font-family: 'Public Sans', sans-serif
+}
 
-
- /* HTML: <div class="loader"></div> */
 .loader {
   width: 65px;
   aspect-ratio: 1;
-  --g: radial-gradient(farthest-side,#0000 calc(95% - 3px),#fff calc(100% - 3px) 98%,#0000 101%) no-repeat;
+  --g: radial-gradient(farthest-side,#0000 calc(95% - 3px),#a3e635 calc(100% - 3px) 98%,#0000 101%) no-repeat;
   background: var(--g), var(--g), var(--g);
   background-size: 30px 30px;
   animation: l10 1.5s infinite;
 }
 @keyframes l10 {
-  0% {
-    background-position: 0 0, 0 100%, 100% 100%;
-  }
-  25% {
-    background-position: 100% 0, 0 100%, 100% 100%;
-  }
-  50% {
-    background-position: 100% 0, 0 0, 100% 100%;
-  }
-  75% {
-    background-position: 100% 0, 0 0, 0 100%;
-  }
-  100% {
-    background-position: 100% 100%, 0 0, 0 100%;
-  }
+  0%   { background-position: 0 0, 0 100%, 100% 100%; }
+  25%  { background-position: 100% 0, 0 100%, 100% 100%; }
+  50%  { background-position: 100% 0, 0 0, 100% 100%; }
+  75%  { background-position: 100% 0, 0 0, 0 100%; }
+  100% { background-position: 100% 100%, 0 0, 0 100%; }
 }

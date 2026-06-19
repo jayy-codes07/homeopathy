@@ -31,213 +31,222 @@ const PatientForm = ({ mode, initialData, onSubmit, loading, error }: PatientFor
         onSubmit(patient)
     }
 
-    return <div className="mx-5 bg-zinc-800 rounded-2xl p-8 shadow-lg mb-8">
-        <div className="mb-8 border-b border-zinc-700/50 pb-6">
-            <h1 className="text-3xl font-bold">{mode === "add" ? "Patient Registration" : "Edit Patient"}</h1>
-            <p className="text-zinc-400 text-sm mt-1">
-                Enter the details below to register a new patient into the system.
-            </p>
-        </div>
+    const inputClass = "w-full bg-[var(--color-background)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface)] rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] placeholder-[var(--color-outline)] transition-colors"
+    const labelClass = "block text-sm font-semibold text-[var(--color-on-surface-variant)] mb-2"
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div>
-                    <label htmlFor="patientName" className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                        Patient Name *
-                    </label>
-                    <input
-                        id="patientName"
-                        required
-                        type="text"
-                        placeholder="John Doe"
-                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
-                        value={patient.patientName}
-                        onChange={(e) => setPatient({ ...patient, patientName: e.target.value })}
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="age" className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                        Age *
-                    </label>
-                    <input
-                        id="age"
-                        required
-                        type="number"
-                        placeholder="e.g., 45"
-                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
-                        value={patient.age || ""}
-                        onChange={(e) => setPatient({ ...patient, age: Number(e.target.value) })}
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="phoneNumber" className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                        Phone Number *
-                    </label>
-                    <input
-                        id="phoneNumber"
-                        required
-                        type="tel"
-                        placeholder="+1 234 567 8900"
-                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
-                        value={patient.phoneNumber}
-                        onChange={(e) => setPatient({ ...patient, phoneNumber: e.target.value })}
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="gender" className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                        Gender *
-                    </label>
-                    <select
-                        id="gender"
-                        required
-                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors appearance-none"
-                        value={patient.gender}
-                        onChange={(e) => setPatient({ ...patient, gender: e.target.value as "MALE" | "FEMALE" | "OTHER" })}
-                    >
-                        <option value="MALE">Male</option>
-                        <option value="FEMALE">Female</option>
-                        <option value="OTHER">Other</option>
-                    </select>
-                </div>
-
-                <div className="md:col-span-2">
-                    <label htmlFor="address" className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                        Address
-                    </label>
-                    <input
-                        id="address"
-                        type="text"
-                        placeholder="123 Main St, City"
-                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
-                        value={patient.address}
-                        onChange={(e) => setPatient({ ...patient, address: e.target.value })}
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="diagnosis" className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                        Diagnosis *
-                    </label>
-                    <input
-                        id="diagnosis"
-                        required
-                        type="text"
-                        placeholder="e.g., Hypertension"
-                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
-                        value={patient.diagnosis}
-                        onChange={(e) => setPatient({ ...patient, diagnosis: e.target.value })}
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="medicine" className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                        Medicine *
-                    </label>
-                    <input
-                        id="medicine"
-                        required
-                        type="text"
-                        placeholder="e.g., Lisinopril"
-                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
-                        value={patient.medicine}
-                        onChange={(e) => setPatient({ ...patient, medicine: e.target.value })}
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="diet" className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                        Diet
-                    </label>
-                    <select
-                        id="diet"
-                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors appearance-none"
-                        value={patient.diet}
-                        onChange={(e) => setPatient({ ...patient, diet: e.target.value as Patient["diet"] })}
-                    >
-                        <option value="VEG">Veg</option>
-                        <option value="NON VEG">Non-Veg</option>
-                        <option value="MIXED">Mixed</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label htmlFor="familySize" className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                        Family Size
-                    </label>
-                    <input
-                        id="familySize"
-                        type="number"
-                        placeholder="e.g., 4"
-                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
-                        value={patient.familySize || ""}
-                        onChange={(e) => setPatient({ ...patient, familySize: Number(e.target.value) })}
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="occupation" className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                        Occupation
-                    </label>
-                    <input
-                        id="occupation"
-                        type="text"
-                        placeholder="e.g., Teacher"
-                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 placeholder-zinc-600 transition-colors"
-                        value={patient.occupation}
-                        onChange={(e) => setPatient({ ...patient, occupation: e.target.value })}
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="followUpDate" className="block text-xs uppercase tracking-wider text-blue-400 mb-2">
-                        Follow-up Date
-                    </label>
-                    <input
-                        id="followUpDate"
-                        type="date"
-                        name="followUpDate"
-                        className="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors [color-scheme:dark]"
-                        value={
-                            patient.followUpDate
-                                ? new Date(patient.followUpDate).toISOString().split("T")[0]
-                                : ""
-                        }
-                        onChange={(e) => setPatient({ ...patient, followUpDate: new Date(e.target.value) })}
-                    />
-                </div>
+    return (
+        <div className="mx-5 bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/40 rounded-2xl p-6 md:p-8 shadow-[0_2px_8px_rgba(26,28,27,0.06)] mb-8">
+            <div className="mb-8 border-b border-[var(--color-outline-variant)]/40 pb-6">
+                <h1 className="text-2xl md:text-3xl font-semibold text-[var(--color-on-surface)]">
+                    {mode === "add" ? "Patient Registration" : "Edit Patient"}
+                </h1>
+                <p className="text-[var(--color-on-surface-variant)] text-sm mt-1">
+                    Enter the details below to register a new patient into the system.
+                </p>
             </div>
 
-            {
-                error && (
-                    <div className="bg-red-900/30 border border-red-700 text-red-400 rounded-xl p-4 mt-2">
-                        <p className="text-sm font-medium">{error}</p>
+            <form onSubmit={handleSubmit} className="space-y-10">
+
+                {/* Section: Basic Information */}
+                <div>
+                    <div className="flex items-center gap-2 mb-5">
+                        <span className="material-symbols-outlined text-[var(--color-primary)] text-xl">person</span>
+                        <h2 className="text-base font-semibold text-[var(--color-on-surface)]">Basic Information</h2>
                     </div>
-                )
-            }
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="md:col-span-2">
+                            <label htmlFor="patientName" className={labelClass}>Patient Name *</label>
+                            <input
+                                id="patientName"
+                                required
+                                type="text"
+                                placeholder="John Doe"
+                                className={inputClass}
+                                value={patient.patientName}
+                                onChange={(e) => setPatient({ ...patient, patientName: e.target.value })}
+                            />
+                        </div>
 
-            <div className="pt-4 border-t border-zinc-700/50">
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className={`w-full py-4 rounded-xl font-semibold transition duration-200 shadow-lg shadow-blue-900/20 active:scale-[0.99]
+                        <div>
+                            <label htmlFor="age" className={labelClass}>Age *</label>
+                            <input
+                                id="age"
+                                required
+                                type="number"
+                                placeholder="e.g., 45"
+                                className={inputClass}
+                                value={patient.age || ""}
+                                onChange={(e) => setPatient({ ...patient, age: Number(e.target.value) })}
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="gender" className={labelClass}>Gender *</label>
+                            <select
+                                id="gender"
+                                required
+                                className={`${inputClass} appearance-none`}
+                                value={patient.gender}
+                                onChange={(e) => setPatient({ ...patient, gender: e.target.value as "MALE" | "FEMALE" | "OTHER" })}
+                            >
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label htmlFor="phoneNumber" className={labelClass}>Phone Number *</label>
+                            <input
+                                id="phoneNumber"
+                                required
+                                type="tel"
+                                placeholder="+1 234 567 8900"
+                                className={inputClass}
+                                value={patient.phoneNumber}
+                                onChange={(e) => setPatient({ ...patient, phoneNumber: e.target.value })}
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="address" className={labelClass}>Address</label>
+                            <input
+                                id="address"
+                                type="text"
+                                placeholder="123 Main St, City"
+                                className={inputClass}
+                                value={patient.address}
+                                onChange={(e) => setPatient({ ...patient, address: e.target.value })}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Section: Clinical Details */}
+                <div>
+                    <div className="flex items-center gap-2 mb-5">
+                        <span className="material-symbols-outlined text-[var(--color-tertiary)] text-xl">medical_services</span>
+                        <h2 className="text-base font-semibold text-[var(--color-on-surface)]">Clinical Details</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label htmlFor="diagnosis" className={labelClass}>Diagnosis *</label>
+                            <input
+                                id="diagnosis"
+                                required
+                                type="text"
+                                placeholder="e.g., Hypertension"
+                                className={inputClass}
+                                value={patient.diagnosis}
+                                onChange={(e) => setPatient({ ...patient, diagnosis: e.target.value })}
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="medicine" className={labelClass}>Medicine *</label>
+                            <input
+                                id="medicine"
+                                required
+                                type="text"
+                                placeholder="e.g., Lycopodium 30C"
+                                className={inputClass}
+                                value={patient.medicine}
+                                onChange={(e) => setPatient({ ...patient, medicine: e.target.value })}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Section: Lifestyle & Follow-up */}
+                <div>
+                    <div className="flex items-center gap-2 mb-5">
+                        <span className="material-symbols-outlined text-[var(--color-secondary)] text-xl">calendar_month</span>
+                        <h2 className="text-base font-semibold text-[var(--color-on-surface)]">Lifestyle & Follow-up</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label htmlFor="diet" className={labelClass}>Diet</label>
+                            <select
+                                id="diet"
+                                className={`${inputClass} appearance-none`}
+                                value={patient.diet}
+                                onChange={(e) => setPatient({ ...patient, diet: e.target.value as Patient["diet"] })}
+                            >
+                                <option value="VEG">Veg</option>
+                                <option value="NON VEG">Non-Veg</option>
+                                <option value="MIXED">Mixed</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label htmlFor="familySize" className={labelClass}>Family Size</label>
+                            <input
+                                id="familySize"
+                                type="number"
+                                placeholder="e.g., 4"
+                                className={inputClass}
+                                value={patient.familySize || ""}
+                                onChange={(e) => setPatient({ ...patient, familySize: Number(e.target.value) })}
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="occupation" className={labelClass}>Occupation</label>
+                            <input
+                                id="occupation"
+                                type="text"
+                                placeholder="e.g., Teacher"
+                                className={inputClass}
+                                value={patient.occupation}
+                                onChange={(e) => setPatient({ ...patient, occupation: e.target.value })}
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="followUpDate" className={labelClass}>Follow-up Date</label>
+                            <input
+                                id="followUpDate"
+                                type="date"
+                                name="followUpDate"
+                                className={inputClass}
+                                value={
+                                    patient.followUpDate
+                                        ? new Date(patient.followUpDate).toISOString().split("T")[0]
+                                        : ""
+                                }
+                                onChange={(e) => setPatient({ ...patient, followUpDate: new Date(e.target.value) })}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {
+                    error && (
+                        <div className="bg-[var(--color-error-container)] border border-[color:var(--color-error)]/20 text-[var(--color-on-error-container)] rounded-xl p-4">
+                            <p className="text-sm font-medium">{error}</p>
+                        </div>
+                    )
+                }
+
+                <div className="pt-4 border-t border-[var(--color-outline-variant)]/40">
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className={`w-full py-4 rounded-xl font-semibold transition duration-200 active:scale-[0.99]
                 ${loading
-                            ? "bg-zinc-700 cursor-wait text-zinc-300 shadow-none"
-                            : "bg-blue-600 hover:bg-blue-700 text-white"
-                        }`}
-                >
-                    {loading
-                        ? "Saving..."
-                        : mode === "add" ? "Register Patient" : "Save Changes"
-                    }
-                </button>
-            </div>
-        </form >
-    </div >
-
+                                ? "bg-[var(--color-surface-container-high)] cursor-wait text-[var(--color-on-surface-variant)]"
+                                : "bg-[var(--color-primary)] hover:opacity-90 text-[var(--color-on-primary)] shadow-sm"
+                            }`}
+                    >
+                        {loading
+                            ? "Saving..."
+                            : mode === "add" ? "Register Patient" : "Save Changes"
+                        }
+                    </button>
+                </div>
+            </form >
+        </div >
+    )
 }
 
 export default PatientForm
