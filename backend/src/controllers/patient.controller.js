@@ -38,6 +38,7 @@ const registerPatient = asyncHandler(async (req, res) => {
 
   const existingPatient = await Patient.findOne({
     phoneNumber: phoneNumber?.trim(),
+    doctor: req.doctor._id,
   });
   if (existingPatient) {
     throw new ApiError(400, "patient already exist");
@@ -55,6 +56,7 @@ const registerPatient = asyncHandler(async (req, res) => {
     familySize,
     occupation,
     followUpDate,
+    doctor: req.doctor._id,
   });
   if (!newPatient) {
     throw new ApiError(500, "there is problem in registering Patient");
@@ -67,13 +69,14 @@ const registerPatient = asyncHandler(async (req, res) => {
 
 const fetchAllPatient = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
-  // const allPatient = await Patient.find();
+
   const allPatient = await Patient.aggregate([
+    { $match: { doctor: req.doctor._id } },
     { $sort: { createdAt: -1 } },
     { $skip: (parseInt(page) - 1) * parseInt(limit) },
     { $limit: parseInt(limit) },
   ]);
-  const totalPatients = await Patient.countDocuments();
+  const totalPatients = await Patient.countDocuments({ doctor: req.doctor._id });
 
   if (allPatient.length === 0) {
     return res
@@ -106,7 +109,10 @@ const findOnePatient = asyncHandler(async (req, res) => {
     throw new ApiError(400, "provide valid objectId");
   }
 
-  const patient = await Patient.findById(patientId);
+  const patient = await Patient.findOne({
+    _id: patientId,
+    doctor: req.doctor._id,
+  });
 
   if (!patient) {
     throw new ApiError(404, "patient does not exist in database");
@@ -172,11 +178,9 @@ const updatePatientDetails = asyncHandler(async (req, res) => {
     updateField.followUpDate = followUpDate;
   }
 
-  const patient = await Patient.findByIdAndUpdate(
-    patientId,
-    {
-      $set: updateField,
-    },
+  const patient = await Patient.findOneAndUpdate(
+    { _id: patientId, doctor: req.doctor._id },
+    { $set: updateField },
     { new: true },
   );
 
@@ -194,7 +198,10 @@ const deletePatient = asyncHandler(async (req, res) => {
     throw new ApiError(400, "provide valid objectId");
   }
 
-  const patient = await Patient.findByIdAndDelete(patientId);
+  const patient = await Patient.findOneAndDelete({
+    _id: patientId,
+    doctor: req.doctor._id,
+  });
 
   if (!patient) {
     throw new ApiError(404, "patient does not exist in database");
@@ -207,11 +214,6 @@ const deletePatient = asyncHandler(async (req, res) => {
 
 const searchPatient = asyncHandler(async (req, res) => {
   const { patientName, diagnosis, medicine, phoneNumber } = req.query;
-
-  // if (patientName?.trim()) searchField.patientName = patientName.trim();
-  // if (diagnosis?.trim()) searchField.diagnosis = diagnosis.trim();
-  // if (medicine?.trim()) searchField.medicine = medicine.trim();
-  // if (phoneNumber?.trim()) searchField.phoneNumber = phoneNumber.trim();
 
   if (
     !patientName?.trim() &&
@@ -242,9 +244,11 @@ const searchPatient = asyncHandler(async (req, res) => {
     conditions.push({
       phoneNumber: { $regex: phoneNumber?.trim(), $options: "i" },
     });
+
   const filterPatients = await Patient.aggregate([
     {
       $match: {
+        doctor: req.doctor._id,
         $or: conditions,
       },
     },

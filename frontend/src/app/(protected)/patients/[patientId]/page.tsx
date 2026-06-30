@@ -123,7 +123,7 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
           </div>
           <div>
             <h1 className="text-2xl lg:text-3xl font-semibold mb-2 lg:mb-3 text-[var(--color-on-surface)]">{patient?.patientName}</h1>
-            <div className="flex flex-wrap items-center gap-2 lg:gap-3 text-sm">
+            <div className="flex flex-wrap items-center gap-2 lg:gap-3 text-sm flex-end">
               <span className="bg-[color:var(--color-secondary-container)]/30 text-[var(--color-on-secondary-container)] px-3 py-1.5 rounded-full font-medium">
                 {patient?.age} yrs
               </span>
