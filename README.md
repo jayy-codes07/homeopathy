@@ -1,6 +1,7 @@
 # Homeopathy Clinic Management System
 
-A full-stack web app built to help homeopathy doctors manage their patients and track followup history. Built this as a portfolio project to practice building a complete system from scratch — auth, file uploads, pagination, and all.
+A full-stack web app built to help homeopathy doctors manage their patients and track followup history. Built this as a portfolio project to practice building a complete system from scratch, auth, file uploads, pagination, and all.
+
 
 **Live:** https://homeopathy-dfcotz8uz-jayy-codes07s-projects.vercel.app/
 
@@ -10,7 +11,7 @@ A full-stack web app built to help homeopathy doctors manage their patients and 
 
 ## What it does
 
-Doctors can register and log into their own account. From there they can add patients with details like diagnosis, medicine, diet, and followup dates. Each patient has a followup history — so every time a patient comes back, the doctor logs what symptoms they had, what medicine was given, and any advice.
+Doctors can register and log into their own account. From there they can add patients with details like diagnosis, medicine, diet, and followup dates. Each patient has a followup history, so every time a patient comes back, the doctor logs what symptoms they had, what medicine was given, and any advice.
 
 The dashboard has live search so finding a patient by name is instant.
 
@@ -53,6 +54,7 @@ The dashboard has live search so finding a patient by name is instant.
 **Backend**
 
 ```bash
+
 cd backend
 npm install
 ```
