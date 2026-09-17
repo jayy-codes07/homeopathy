@@ -1,11 +1,12 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-
+import "dotenv/config";
 // routes
 // import userRoute from "./routes/user.route.js";
 import patientRoute from "./routes/patient.route.js";
 import followUpRoute from "./routes/followUP.route.js";
+import caseRoute from "./routes/case.route.js";
 import doctorRoute from "./routes/doctor.route.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import ratelimit from "express-rate-limit";
@@ -19,9 +20,16 @@ import connectDB from "./db/db.js";
 const app = express();
 app.set('trust proxy', 1)
 app.use(helmet());
+// cors() silently skips every Access-Control-* header when `origin` is falsy,
+// which reaches the browser as a missing Access-Control-Allow-Origin rather than
+// as a server-side error, so resolve it explicitly and say so when it is unset.
+const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:3000";
+if (!process.env.CORS_ORIGIN) {
+  console.warn(`CORS_ORIGIN is not set, falling back to ${corsOrigin}`);
+}
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: corsOrigin,
     credentials: true,
   }),
 );
@@ -78,9 +86,8 @@ app.use("/api/v1", async (req, res, next) => {
 app.use("/api/v1/patient", patientRoute);
 app.use("/api/v1/doctor", doctorRoute);
 app.use("/api/v1/followup", followUpRoute);
+app.use("/api/v1/case", caseRoute);
 app.use(errorHandler);
 
 export { app };
-// Vercel's Node runtime imports this module and requires the default export to
-// be a request handler; an Express app is exactly that.
 export default app;

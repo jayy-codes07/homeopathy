@@ -4,6 +4,7 @@ import React, { SyntheticEvent, use, useState } from 'react'
 import { Followup } from '@/types'
 import { useRouter } from 'next/navigation'
 import api from '@/utils/api'
+import FormTextarea from '@/components/FormTextarea'
 
 type Followuptypes = Omit<Followup, "_id">
 const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
@@ -110,39 +111,25 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
           </div>
 
           {/* Symptoms — full width textarea, room for real clinical notes */}
-          <div>
-            <label className="flex items-center gap-1.5 text-sm font-semibold text-[var(--color-on-surface-variant)] mb-2">
-              <span className="material-symbols-outlined text-base text-[var(--color-tertiary)]">monitor_heart</span>
-              Symptoms
-            </label>
-            <textarea
-              required
-              rows={3}
-              value={formData.symptoms}
-              placeholder="Describe current symptoms and any changes since last visit..."
-              onChange={(e) =>
-                setFormData({ ...formData, symptoms: e.target.value })
-              }
-              className="w-full bg-[var(--color-background)] border border-[var(--color-outline-variant)] rounded-xl px-4 py-3 text-[var(--color-on-surface)] placeholder-[var(--color-outline)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors resize-none"
-            />
-          </div>
+          <FormTextarea
+            label="Symptoms"
+            icon="monitor_heart"
+            iconColor="var(--color-tertiary)"
+            required
+            value={formData.symptoms}
+            placeholder="Describe current symptoms and any changes since last visit..."
+            onChange={(symptoms) => setFormData({ ...formData, symptoms })}
+          />
 
           {/* Advice — full width textarea */}
-          <div>
-            <label className="flex items-center gap-1.5 text-sm font-semibold text-[var(--color-on-surface-variant)] mb-2">
-              <span className="material-symbols-outlined text-base text-[var(--color-secondary)]">edit_note</span>
-              Advice
-            </label>
-            <textarea
-              rows={3}
-              value={formData.advise}
-              placeholder="Dosage instructions, diet, lifestyle advice..."
-              onChange={(e) =>
-                setFormData({ ...formData, advise: e.target.value })
-              }
-              className="w-full bg-[var(--color-background)] border border-[var(--color-outline-variant)] rounded-xl px-4 py-3 text-[var(--color-on-surface)] placeholder-[var(--color-outline)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors resize-none"
-            />
-          </div>
+          <FormTextarea
+            label="Advice"
+            icon="edit_note"
+            iconColor="var(--color-secondary)"
+            value={formData.advise}
+            placeholder="Dosage instructions, diet, lifestyle advice..."
+            onChange={(advise) => setFormData({ ...formData, advise })}
+          />
 
           {/* Error */}
           {error && (
