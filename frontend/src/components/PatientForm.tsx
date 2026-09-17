@@ -2,13 +2,16 @@ import { Patient } from "@/types";
 import { useState } from "react";
 interface PatientFormProps {
     mode: "add" | "edit"
-    initialData?: Patient // what type? hint: look at add/page.tsx line 8
-    onSubmit: (data: Omit<Patient, "_id">) => void             // who should handle the API call — form or parent?
+    initialData?: Patient | Omit<Patient, "_id">
+    onSubmit: (data: Omit<Patient, "_id">) => void
     loading: boolean
     error: string
+    // Overrides the submit button text. The add flow uses this for "Next",
+    // since registration now continues into a second step.
+    submitLabel?: string
 }
 
-const PatientForm = ({ mode, initialData, onSubmit, loading, error }: PatientFormProps) => {
+const PatientForm = ({ mode, initialData, onSubmit, loading, error, submitLabel }: PatientFormProps) => {
 
     type PatientForm = Omit<Patient, "_id">;
 
@@ -240,7 +243,7 @@ const PatientForm = ({ mode, initialData, onSubmit, loading, error }: PatientFor
                     >
                         {loading
                             ? "Saving..."
-                            : mode === "add" ? "Register Patient" : "Save Changes"
+                            : submitLabel ?? (mode === "add" ? "Register Patient" : "Save Changes")
                         }
                     </button>
                 </div>
