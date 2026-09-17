@@ -15,6 +15,7 @@ import compression from "compression";
 import mongoose from "mongoose";
 import connectDB from "./db/db.js";
 
+// this is app
 const app = express();
 app.set('trust proxy', 1)
 app.use(helmet());
