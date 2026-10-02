@@ -26,13 +26,13 @@ Set `DEMO_PASSWORD` to override the default password. The script only ever delet
 ## Key features
 
 - **Doctor accounts with JWT auth.** Register and log in; passwords are bcrypt-hashed in a Mongoose pre-save hook. Login issues an access token and a refresh token; every data route runs through a `verifyJWT` middleware that accepts a Bearer header or cookie.
-- **Per-doctor data isolation.** Every patient belongs to one doctor. List, read, update, and delete queries all filter by the logged-in doctor's id, and a compound unique index on `(doctor, phoneNumber)` prevents duplicate patients per doctor.
+- **Per-doctor data isolation.** Every patient belongs to one doctor. Patient, case, and follow-up queries all check that the record's patient belongs to the logged-in doctor (a cross-doctor request gets 404), doctor account routes only act on the caller's own account (403 otherwise), and a compound unique index on `(doctor, phoneNumber)` prevents duplicate patients per doctor.
 - **Patient CRUD with server-side validation.** Required-field checks, a 10-digit phone number check, and ObjectId validation before any database call.
 - **Structured case taking.** A case holds a chief complaint plus an optional "interrogation" section modelled on a paper intake form: presenting complaint, history, past history, and a personal-history block with a thermal-reactivity enum.
 - **Two-step patient registration.** The add-patient flow creates the patient, then the first case. The created patient id is remembered so a failed case submission can be retried without creating a duplicate patient.
 - **Follow-up history.** Add, edit, and delete dated follow-up entries (symptoms, medicine, advice) per patient, with paginated listing.
 - **Paginated dashboard with search.** Server-side pagination plus a debounced search box that filters by patient name or phone number (case-insensitive, regex-escaped) while keeping page counts correct.
-- **Avatar upload.** Multer writes the file to disk, then it is pushed to Cloudinary and the URL is saved on the doctor.
+- **Avatar upload.** Multer writes the file to disk, it is pushed to Cloudinary, the temp file is removed, and the URL is saved on the doctor.
 - **Hardened Express app.** Helmet, CORS allowlist, rate limiting (200 requests/minute), request sanitising against MongoDB operator injection, and gzip compression.
 
 ## Tech stack
@@ -44,7 +44,7 @@ Set `DEMO_PASSWORD` to override the default password. The script only ever delet
 
 ## Architecture
 
-The Next.js frontend is a pure client of the API. Pages call a shared Axios instance that attaches the stored access token as a Bearer header and redirects to `/login` when the API reports an expired token. Express routes pass through `verifyJWT`, which loads the doctor from MongoDB and puts it on the request. Controllers validate input, run Mongoose queries scoped to that doctor, and return a uniform `ApiResponse` JSON envelope. Thrown `ApiError`s are turned into JSON error responses by the shared async wrapper.
+The Next.js frontend is a pure client of the API. Pages call a shared Axios instance that attaches the stored access token as a Bearer header and redirects to `/login` when the API answers 401. Express routes pass through `verifyJWT`, which loads the doctor from MongoDB and puts it on the request. Controllers validate input, run Mongoose queries scoped to that doctor, and return a uniform `ApiResponse` JSON envelope. Thrown `ApiError`s are forwarded by the shared async wrapper to a single error middleware that turns them into JSON error responses.
 
 ```mermaid
 flowchart LR
@@ -75,8 +75,8 @@ frontend/src
 
 ## Notable decisions
 
-- **Token handling.** The access token is returned in the login JSON and kept in `localStorage`; Axios adds it as a Bearer header. The same tokens are also set as `httpOnly` cookies. The refresh token is stored on the doctor document and rotated by `POST /doctor/generateToken`, but the frontend does not call it yet: on `jwt expired` it clears storage and sends the user to login.
-- **Errors and validation.** `ApiError` and `ApiResponse` give every response the same shape (`statusCode`, `success`, `message`, `data`). Validation is hand-written in each controller rather than a schema library; invalid ObjectIds and enum values return 400 before Mongoose sees them.
+- **Token handling.** The access token is returned in the login JSON and kept in `localStorage`; Axios adds it as a Bearer header. The same tokens are also set as `httpOnly` cookies named `accessToken` and `refreshToken`, and `verifyJWT` accepts either. A missing, invalid, or expired token gets a 401. The refresh token is stored on the doctor document and rotated by `POST /doctor/generateToken`, but the frontend does not call it yet: on any 401 it clears storage and sends the user to login.
+- **Errors and validation.** `ApiError` and `ApiResponse` give every response the same shape (`statusCode`, `success`, `message`, `data`). Validation is hand-written in each controller rather than a schema library; invalid ObjectIds and enum values return 400 before Mongoose sees them. Search terms are regex-escaped before being used in `$regex`.
 - **Case schema.** The interrogation is a set of nested sub-schemas with `_id: false`. Blank fields are pruned on both client and server so a case with only a chief complaint does not store a tree of empty strings. Updates replace the whole interrogation instead of merging, so cleared fields actually disappear.
 - **Serverless-friendly DB connection.** `connectDB` caches the connection promise and is also invoked lazily on `/api/v1`, so `app.js` can be loaded directly by a serverless host without `index.js`.
 
@@ -113,7 +113,7 @@ Then either register a doctor through the login page or run `npm run seed:demo -
 
 ## API overview
 
-All paths are prefixed with `/api/v1`. "Auth" means a valid access token is required.
+All paths are prefixed with `/api/v1`. "Auth" means a valid access token is required; patient, case, and follow-up routes only return records belonging to the caller.
 
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
@@ -121,10 +121,10 @@ All paths are prefixed with `/api/v1`. "Auth" means a valid access token is requ
 | POST | `/doctor/login` | no | Login, returns access + refresh tokens |
 | POST | `/doctor/logout` | yes | Clear refresh token and cookies |
 | POST | `/doctor/generateToken` | no | Rotate tokens using the refresh token |
-| PATCH | `/doctor/Details/:doctorId` | yes | Update name, email, degree |
-| PATCH | `/doctor/Password/:doctorId` | yes | Change password |
-| PATCH | `/doctor/Avatar/:doctorId` | yes | Replace avatar (multipart) |
-| DELETE | `/doctor/doctor/:doctorId` | yes | Delete doctor account |
+| PATCH | `/doctor/Details/:doctorId` | yes, own id only | Update name, email, degree |
+| PATCH | `/doctor/Password/:doctorId` | yes, own id only | Change password |
+| PATCH | `/doctor/Avatar/:doctorId` | yes, own id only | Replace avatar (multipart) |
+| DELETE | `/doctor/doctor/:doctorId` | yes, own id only | Delete doctor account |
 | POST | `/patient/register` | yes | Create patient |
 | GET | `/patient/all-patient?page&limit&search` | yes | Paginated patients for this doctor, filtered by name or phone |
 | GET | `/patient/search?patientName&diagnosis&medicine&phoneNumber` | yes | Case-insensitive search |
@@ -139,16 +139,15 @@ All paths are prefixed with `/api/v1`. "Auth" means a valid access token is requ
 
 ## Testing and deployment
 
-- **Tests:** `cd backend && npm test` runs ten API tests with Node's built-in test runner against an in-memory MongoDB (no external database needed). They cover register and login, wrong password, missing token, patient validation and duplicate phone numbers, per-doctor isolation, the search filter, and the demo seed (idempotent, demo login works, other doctors cannot see demo data). The frontend has no tests; it has ESLint via `npm run lint`.
+- **Tests:** `cd backend && npm test` runs 13 API tests with Node's built-in test runner against an in-memory MongoDB (no external database needed). They cover register and login, wrong password, 401 for missing, invalid, and expired tokens, patient validation and duplicate phone numbers, per-doctor isolation of patients and follow-ups, doctors being unable to modify other accounts, cookie-based auth, the search filter, and the demo seed (idempotent, demo login works, other doctors cannot see demo data). Avatar upload is not covered because it needs Cloudinary credentials. The frontend has no tests; it has ESLint via `npm run lint`.
 - **CI:** `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests. Backend job: `npm ci`, module load check, `npm test`. Frontend job: `npm ci`, `npm run build`.
-- **Docker:** `backend/Dockerfile` builds a `node:20-alpine` image that runs `node src/index.js` on port 8000. Pass the variables from the env table at run time. There is no Dockerfile for the frontend.
+- **Docker:** `backend/Dockerfile` builds a `node:20-alpine` image with production dependencies only and runs `node src/index.js` on port 8000 (`PORT` is set in the image). Pass the other variables from the env table at run time. There is no Dockerfile for the frontend.
 - **Hosting:** no `vercel.json` or platform config in the repo. The backend also works when `app.js` is loaded directly as a serverless function.
 
 ## Roadmap
 
 1. Use `POST /doctor/generateToken` from the Axios interceptor to refresh silently instead of logging the doctor out on expiry.
-2. Return 401 instead of 400 for missing or invalid tokens, and route all errors through the global error handler so stack traces and status codes are consistent.
-3. Add frontend tests for the patient and case forms, and extend search to diagnosis and medicine.
+2. Add frontend tests for the patient and case forms, and extend the dashboard search to diagnosis and medicine.
 
 ## Author
 
