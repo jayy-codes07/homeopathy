@@ -21,7 +21,7 @@ Add the three images at `docs/screenshots/dashboard.png`, `docs/screenshots/pati
 - **Structured case taking.** A case holds a chief complaint plus an optional "interrogation" section modelled on a paper intake form: presenting complaint, history, past history, and a personal-history block with a thermal-reactivity enum.
 - **Two-step patient registration.** The add-patient flow creates the patient, then the first case. The created patient id is remembered so a failed case submission can be retried without creating a duplicate patient.
 - **Follow-up history.** Add, edit, and delete dated follow-up entries (symptoms, medicine, advice) per patient, with paginated listing.
-- **Paginated dashboard.** Server-side pagination of patients, a debounced search box, and counts of overdue and due-soon follow-ups.
+- **Paginated dashboard with search.** Server-side pagination plus a debounced search box that filters by patient name or phone number (case-insensitive, regex-escaped) while keeping page counts correct.
 - **Avatar upload.** Multer writes the file to disk, then it is pushed to Cloudinary and the URL is saved on the doctor.
 - **Hardened Express app.** Helmet, CORS allowlist, rate limiting (200 requests/minute), request sanitising against MongoDB operator injection, and gzip compression.
 
@@ -30,7 +30,7 @@ Add the three images at `docs/screenshots/dashboard.png`, `docs/screenshots/pati
 - **Frontend:** Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, Axios, nextjs-toast-notify
 - **Backend:** Node.js 20, Express 5, Mongoose 9, jsonwebtoken, bcrypt, Multer, Cloudinary SDK
 - **Database:** MongoDB
-- **Tooling:** npm, nodemon, ESLint (eslint-config-next)
+- **Tooling:** npm, nodemon, ESLint (eslint-config-next), Node test runner with mongodb-memory-server, Docker, GitHub Actions
 
 ## Architecture
 
@@ -54,6 +54,7 @@ backend/src
   models/           Doctor, Patient, Case, FollowUP schemas
   middleware/       auth (JWT), multer, error handler
   utility/          ApiError, ApiResponse, asyncHandler, cloudinary
+backend/tests       API tests (node:test + mongodb-memory-server)
 frontend/src
   app/              login, (protected)/dashboard, (protected)/patients/...
   components/       PatientForm, CaseForm, CaseDetails, Navbar, form inputs
@@ -114,7 +115,7 @@ All paths are prefixed with `/api/v1`. "Auth" means a valid access token is requ
 | PATCH | `/doctor/Avatar/:doctorId` | yes | Replace avatar (multipart) |
 | DELETE | `/doctor/doctor/:doctorId` | yes | Delete doctor account |
 | POST | `/patient/register` | yes | Create patient |
-| GET | `/patient/all-patient?page&limit` | yes | Paginated patients for this doctor |
+| GET | `/patient/all-patient?page&limit&search` | yes | Paginated patients for this doctor, filtered by name or phone |
 | GET | `/patient/search?patientName&diagnosis&medicine&phoneNumber` | yes | Case-insensitive search |
 | GET / PATCH / DELETE | `/patient/:patientId` | yes | Read, update, delete one patient |
 | POST | `/case/create-case/:patientId` | yes | Create a case for a patient |
@@ -127,15 +128,16 @@ All paths are prefixed with `/api/v1`. "Auth" means a valid access token is requ
 
 ## Testing and deployment
 
-- **Tests:** none. `npm test` in `backend` is the npm placeholder and exits 1. The frontend has ESLint via `npm run lint`.
-- **Verified locally:** `npm install` in both packages and `npm run build` in `frontend` succeed on Node 20.20 (Next.js 16.2.6).
-- **Deployment:** no Dockerfile, CI config, or `vercel.json` in the repo. The backend is written to run either as a long-lived server (`npm start`) or loaded directly as a serverless function (see `app.js`).
+- **Tests:** `cd backend && npm test` runs six API tests with Node's built-in test runner against an in-memory MongoDB (no external database needed). They cover register and login, wrong password, missing token, patient validation and duplicate phone numbers, per-doctor isolation, and the search filter. The frontend has no tests; it has ESLint via `npm run lint`.
+- **CI:** `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests. Backend job: `npm ci`, module load check, `npm test`. Frontend job: `npm ci`, `npm run build`.
+- **Docker:** `backend/Dockerfile` builds a `node:20-alpine` image that runs `node src/index.js` on port 8000. Pass the variables from the env table at run time. There is no Dockerfile for the frontend.
+- **Hosting:** no `vercel.json` or platform config in the repo. The backend also works when `app.js` is loaded directly as a serverless function.
 
 ## Roadmap
 
-1. Wire the dashboard search box to `GET /patient/search`. Today it sends a `search` param that the list endpoint ignores.
-2. Use `POST /doctor/generateToken` from the Axios interceptor to refresh silently instead of logging the doctor out on expiry.
-3. Add API tests with Jest and Supertest, starting with auth and the per-doctor scoping rules.
+1. Use `POST /doctor/generateToken` from the Axios interceptor to refresh silently instead of logging the doctor out on expiry.
+2. Return 401 instead of 400 for missing or invalid tokens, and route all errors through the global error handler so stack traces and status codes are consistent.
+3. Add frontend tests for the patient and case forms, and extend search to diagnosis and medicine.
 
 ## Author
 
