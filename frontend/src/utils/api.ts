@@ -15,7 +15,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.data?.message === "jwt expired") {
+    // Any 401 means the stored token is missing, invalid or expired.
+    if (error.response?.status === 401 && window.location.pathname !== "/login") {
       localStorage.removeItem("doctorJWT");
       window.location.href = "/login";
     }

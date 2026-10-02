@@ -93,11 +93,21 @@ test("login with the wrong password is rejected", async () => {
   assert.equal(login.body.data, undefined);
 });
 
-test("protected routes reject requests without a token", async () => {
-  const res = await json("/patient/all-patient");
-  // verifyJWT currently answers 400 (not 401) for a missing token.
-  assert.equal(res.status, 400);
-  assert.equal(res.body.success, false);
+test("protected routes answer 401 for missing, invalid and expired tokens", async () => {
+  const missing = await json("/patient/all-patient");
+  assert.equal(missing.status, 401);
+  assert.equal(missing.body.success, false);
+
+  const invalid = await json("/patient/all-patient", { token: "not-a-jwt" });
+  assert.equal(invalid.status, 401);
+
+  const jwt = (await import("jsonwebtoken")).default;
+  const expired = jwt.sign({ id: "000000000000000000000000" }, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: -10,
+  });
+  const expiredRes = await json("/patient/all-patient", { token: expired });
+  assert.equal(expiredRes.status, 401);
+  assert.equal(expiredRes.body.message, "jwt expired");
 });
 
 test("patient creation validates required fields and phone number", async () => {
