@@ -64,6 +64,9 @@ before(async () => {
 
 after(async () => {
   await new Promise((resolve) => server.close(resolve));
+  // With REDIS_URL set (as in CI) the first request opened a Redis client;
+  // an open socket keeps the process alive, so it must be closed here.
+  await (await import("../src/cache/index.js")).closeCache();
   await mongoose.disconnect();
   await mongod.stop();
 });
