@@ -136,4 +136,53 @@ const getPatientCases = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, cases, "all cases fetched successfully"));
 });
 
-export { createCase, getPatientCases };
+const updateCase = asyncHandler(async (req, res) => {
+  const { caseId } = req.params;
+  const { chiefComplaint, interrogation } = req.body;
+
+  if (!isValidObjectId(caseId)) {
+    throw new ApiError(400, "provide valid caseId");
+  }
+
+  const existingCase = await Case.findOne({
+    _id: caseId,
+    doctor: req.doctor._id,
+  });
+  if (!existingCase) {
+    throw new ApiError(404, "case does not exist in database");
+  }
+
+  const update = {};
+
+  if (chiefComplaint !== undefined) {
+    if (!chiefComplaint?.trim()) {
+      throw new ApiError(400, "provide chief complaint");
+    }
+    update.chiefComplaint = chiefComplaint.trim();
+  }
+
+  const operations = { $set: update };
+
+  // The edit form always submits the whole section, so the interrogation is
+  // replaced rather than merged — otherwise a field the doctor cleared would
+  // survive. Cleared down to nothing, the key is removed entirely.
+  if ("interrogation" in req.body) {
+    const built = buildInterrogation(interrogation);
+    if (built) {
+      update.interrogation = built;
+    } else {
+      operations.$unset = { interrogation: "" };
+    }
+  }
+
+  const updatedCase = await Case.findByIdAndUpdate(caseId, operations, {
+    new: true,
+    runValidators: true,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedCase, "case updated successfully"));
+});
+
+export { createCase, getPatientCases, updateCase };
