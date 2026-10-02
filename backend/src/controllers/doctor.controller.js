@@ -94,7 +94,7 @@ const loginDoctor = asyncHandler(async (req, res) => {
   const cookieOption = { httpOnly: true, secure: true };
   res
     .status(200)
-    .cookie("Accesstoken", Accesstoken, cookieOption)
+    .cookie("accessToken", Accesstoken, cookieOption)
     .cookie("refreshToken", RefreshToken, cookieOption)
 
     .json(
@@ -120,7 +120,7 @@ const logoutDoctor = asyncHandler(async (req, res) => {
 
   res
     .status(200)
-    .clearCookie("AccessToken")
+    .clearCookie("accessToken")
     .clearCookie("refreshToken")
     .json(new ApiResponse(200, doctor, "logout successfully"));
 });
@@ -154,8 +154,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .cookie("AccessToken", generatedAccessToken, options)
-    .cookie("RefreshToken", generatedRefreshToken, options)
+    .cookie("accessToken", generatedAccessToken, options)
+    .cookie("refreshToken", generatedRefreshToken, options)
     .json(
       new ApiResponse(
         200,
