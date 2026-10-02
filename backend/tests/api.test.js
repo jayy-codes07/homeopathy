@@ -291,3 +291,25 @@ test("follow-ups are scoped to the patient's own doctor", async () => {
   });
   assert.equal(ownDelete.status, 200);
 });
+
+test("login sets accessToken and refreshToken cookies that the middleware accepts", async () => {
+  await registerAndLogin("cookie@example.com");
+  const res = await fetch(`${baseUrl}/api/v1/doctor/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: "cookie@example.com", password: "secret123" }),
+  });
+  assert.equal(res.status, 200);
+  const cookies = res.headers.getSetCookie();
+  const access = cookies.find((c) => c.startsWith("accessToken="));
+  const refresh = cookies.find((c) => c.startsWith("refreshToken="));
+  assert.ok(access, "accessToken cookie set");
+  assert.ok(refresh, "refreshToken cookie set");
+  assert.match(access, /HttpOnly/i);
+
+  // The cookie alone, with no Authorization header, must authenticate.
+  const list = await fetch(`${baseUrl}/api/v1/patient/all-patient`, {
+    headers: { cookie: access.split(";")[0] },
+  });
+  assert.equal(list.status, 200);
+});
