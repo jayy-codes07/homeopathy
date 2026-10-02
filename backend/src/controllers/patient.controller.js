@@ -4,6 +4,18 @@ import { Patient } from "../models/patient.model.js";
 import { asyncHandler } from "../utility/asyncHandler.js";
 import { ApiError } from "../utility/apiError.js";
 import { ApiResponse } from "../utility/apiResponse.js";
+import { getCache } from "../cache/index.js";
+import {
+  PATIENT_LIST_TTL,
+  patientListNamespace,
+  patientListField,
+  invalidatePatientList,
+} from "../cache/patientList.js";
+
+// Cache invalidation note: only patient create/update/delete clear the list
+// cache. The list and the dashboard's due counts read Patient documents only,
+// and the case and follow-up controllers never modify a Patient, so their
+// writes cannot change what this list returns.
 
 const registerPatient = asyncHandler(async (req, res) => {
   const {
@@ -61,6 +73,7 @@ const registerPatient = asyncHandler(async (req, res) => {
   if (!newPatient) {
     throw new ApiError(500, "there is problem in registering Patient");
   }
+  await invalidatePatientList(req.doctor._id);
 
   return res
     .status(201)
@@ -79,37 +92,49 @@ const fetchAllPatient = asyncHandler(async (req, res) => {
     const pattern = { $regex: escapeRegex(term), $options: "i" };
     filter.$or = [{ patientName: pattern }, { phoneNumber: pattern }];
   }
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+
+  const cache = getCache();
+  const ns = patientListNamespace(req.doctor._id);
+  const field = patientListField({ page: pageNum, limit: limitNum, term });
+
+  const cached = await cache.get(ns, field);
+  if (cached) {
+    res.set("X-Cache", "HIT");
+    return res
+      .status(200)
+      .json(new ApiResponse(200, cached.data, cached.message));
+  }
+  res.set("X-Cache", cache.status === "ready" ? "MISS" : "BYPASS");
 
   const allPatient = await Patient.aggregate([
     { $match: filter },
     { $sort: { createdAt: -1 } },
-    { $skip: (parseInt(page) - 1) * parseInt(limit) },
-    { $limit: parseInt(limit) },
+    { $skip: (pageNum - 1) * limitNum },
+    { $limit: limitNum },
   ]);
   const totalPatients = await Patient.countDocuments(filter);
 
+  // Both response shapes are cached as-is so a hit replays identical JSON.
+  let data;
+  let message;
   if (allPatient.length === 0) {
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          [],
-          "No patients found. Please register new patients.",
-        ),
-      );
+    data = [];
+    message = "No patients found. Please register new patients.";
+  } else {
+    data = {
+      patient: allPatient,
+      totalPatients,
+      currentPage: pageNum,
+      totalPages: Math.ceil(totalPatients / limitNum),
+    };
+    message = "all patients fetched successfully";
   }
-  const patientData = {
-    patient: allPatient,
-    totalPatients,
-    currentPage: parseInt(page),
-    totalPages: Math.ceil(totalPatients / parseInt(limit)),
-  };
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, patientData, "all patients fetched successfully"),
-    );
+  // Fire-and-forget: the driver never throws, and a failed write is only a miss.
+  cache.set(ns, field, { data, message }, PATIENT_LIST_TTL);
+
+  return res.status(200).json(new ApiResponse(200, data, message));
 });
 
 const findOnePatient = asyncHandler(async (req, res) => {
@@ -197,6 +222,7 @@ const updatePatientDetails = asyncHandler(async (req, res) => {
   if (!patient) {
     throw new ApiError(404, "patient does not exist in database");
   }
+  await invalidatePatientList(req.doctor._id);
   return res
     .status(200)
     .json(new ApiResponse(200, patient, "patient updated successfully "));
@@ -216,6 +242,7 @@ const deletePatient = asyncHandler(async (req, res) => {
   if (!patient) {
     throw new ApiError(404, "patient does not exist in database");
   }
+  await invalidatePatientList(req.doctor._id);
 
   return res
     .status(200)

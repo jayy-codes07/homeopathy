@@ -14,6 +14,7 @@ import mongoSanitize from "express-mongo-sanitize";
 import compression from "compression";
 import mongoose from "mongoose";
 import connectDB from "./db/db.js";
+import { getCache } from "./cache/index.js";
 
 // this is app
 const app = express();
@@ -68,6 +69,8 @@ app.get("/api/health", (req, res) => {
     success: true,
     status: "ok",
     db: mongoose.connection.readyState === 1,
+    cache: getCache().name,
+    cacheReady: getCache().status === "ready",
   });
 });
 
