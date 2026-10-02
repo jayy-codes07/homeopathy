@@ -6,8 +6,9 @@ const storage = multer.diskStorage({
         cb(null,'./public/tempUserAvatar')
     },
     filename : function (req,file,cb) {
-        const exe= path.extname(file.originalname)
-        cb(null,`${file.fieldname}-${Date.now()}.${exe}`)
+        // extname already includes the leading dot.
+        const ext = path.extname(file.originalname)
+        cb(null,`${file.fieldname}-${Date.now()}${ext}`)
     }
 })
 
