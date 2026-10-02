@@ -4,8 +4,20 @@ A web app for homeopathy doctors to keep patient records, structured case-taking
 
 ## Demo
 
-- **Live app:** `<LIVE_URL>`
-- **Demo login:** email `<DEMO_EMAIL>` / password `<DEMO_PASSWORD>`
+- **Live app:** https://homeopathy-gilt.vercel.app/
+- **Demo login:** email `demo@example.com` / password `homeo-demo-2026`
+- The demo account holds 12 invented patients with cases and follow-ups. Names, phone numbers, and clinical notes are placeholders, not real people or records.
+- The backend sleeps when idle on the free tier, so the first request after a quiet spell can take up to a minute.
+
+To load the same demo data into your own database:
+
+```bash
+cd backend
+npm run seed:demo                # dry run: prints the target host, writes nothing
+npm run seed:demo -- --confirm   # creates the demo doctor if missing, then recreates its data
+```
+
+Set `DEMO_PASSWORD` to override the default password. The script only ever deletes or recreates records that belong to the demo doctor.
 
 | Dashboard | Patient detail | Case form |
 |---|---|---|
@@ -55,6 +67,7 @@ backend/src
   middleware/       auth (JWT), multer, error handler
   utility/          ApiError, ApiResponse, asyncHandler, cloudinary
 backend/tests       API tests (node:test + mongodb-memory-server)
+backend/scripts     seed-demo.js
 frontend/src
   app/              login, (protected)/dashboard, (protected)/patients/...
   components/       PatientForm, CaseForm, CaseDetails, Navbar, form inputs
@@ -98,7 +111,7 @@ npm run dev            # http://localhost:3000
 | `NODE_ENV` | backend | `development` includes stack traces in error responses |
 | `NEXT_PUBLIC_API_URL` | frontend | Base URL of the API, including `/api/v1` |
 
-There is no seed script. Register a doctor through the login page to get started.
+Then either register a doctor through the login page or run `npm run seed:demo -- --confirm` in `backend` (see Demo above).
 
 ## API overview
 
@@ -128,7 +141,7 @@ All paths are prefixed with `/api/v1`. "Auth" means a valid access token is requ
 
 ## Testing and deployment
 
-- **Tests:** `cd backend && npm test` runs six API tests with Node's built-in test runner against an in-memory MongoDB (no external database needed). They cover register and login, wrong password, missing token, patient validation and duplicate phone numbers, per-doctor isolation, and the search filter. The frontend has no tests; it has ESLint via `npm run lint`.
+- **Tests:** `cd backend && npm test` runs ten API tests with Node's built-in test runner against an in-memory MongoDB (no external database needed). They cover register and login, wrong password, missing token, patient validation and duplicate phone numbers, per-doctor isolation, the search filter, and the demo seed (idempotent, demo login works, other doctors cannot see demo data). The frontend has no tests; it has ESLint via `npm run lint`.
 - **CI:** `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests. Backend job: `npm ci`, module load check, `npm test`. Frontend job: `npm ci`, `npm run build`.
 - **Docker:** `backend/Dockerfile` builds a `node:20-alpine` image that runs `node src/index.js` on port 8000. Pass the variables from the env table at run time. There is no Dockerfile for the frontend.
 - **Hosting:** no `vercel.json` or platform config in the repo. The backend also works when `app.js` is loaded directly as a serverless function.
@@ -141,4 +154,4 @@ All paths are prefixed with `/api/v1`. "Auth" means a valid access token is requ
 
 ## Author
 
-**`<YOUR NAME>`** · GitHub [@jayy-codes07](https://github.com/jayy-codes07) · LinkedIn `<LINKEDIN_URL>` · `<EMAIL>`
+**Hadiya Jay** · GitHub [jayy-codes07](https://github.com/jayy-codes07) · LinkedIn [hadiya-jay-b48aa8325](https://www.linkedin.com/in/hadiya-jay-b48aa8325) · [hadiyajay2010@gmail.com](mailto:hadiyajay2010@gmail.com)
