@@ -67,16 +67,26 @@ const registerPatient = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, newPatient, "patient registered successfully"));
 });
 
+// Escapes user input so it is matched literally inside $regex.
+const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const fetchAllPatient = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, search = "" } = req.query;
+
+  const filter = { doctor: req.doctor._id };
+  const term = typeof search === "string" ? search.trim() : "";
+  if (term) {
+    const pattern = { $regex: escapeRegex(term), $options: "i" };
+    filter.$or = [{ patientName: pattern }, { phoneNumber: pattern }];
+  }
 
   const allPatient = await Patient.aggregate([
-    { $match: { doctor: req.doctor._id } },
+    { $match: filter },
     { $sort: { createdAt: -1 } },
     { $skip: (parseInt(page) - 1) * parseInt(limit) },
     { $limit: parseInt(limit) },
   ]);
-  const totalPatients = await Patient.countDocuments({ doctor: req.doctor._id });
+  const totalPatients = await Patient.countDocuments(filter);
 
   if (allPatient.length === 0) {
     return res
