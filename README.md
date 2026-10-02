@@ -23,8 +23,6 @@ Set `DEMO_PASSWORD` to override the default password. The script only ever delet
 |---|---|---|
 | ![Dashboard](docs/screenshots/dashboard.png) | ![Patient detail](docs/screenshots/patient-detail.png) | ![Case form](docs/screenshots/case-form.png) |
 
-Add the three images at `docs/screenshots/dashboard.png`, `docs/screenshots/patient-detail.png`, and `docs/screenshots/case-form.png`.
-
 ## Key features
 
 - **Doctor accounts with JWT auth.** Register and log in; passwords are bcrypt-hashed in a Mongoose pre-save hook. Login issues an access token and a refresh token; every data route runs through a `verifyJWT` middleware that accepts a Bearer header or cookie.
