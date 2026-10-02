@@ -10,6 +10,7 @@ COPY src ./src
 RUN mkdir -p public/tempUserAvatar
 
 ENV NODE_ENV=production
+ENV PORT=8000
 EXPOSE 8000
 
 CMD ["node", "src/index.js"]

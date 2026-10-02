@@ -204,7 +204,7 @@ const updateDoctorPassword = asyncHandler(async (req, res) => {
 
   assertOwnDoctor(doctorId, req);
 
-  if (!password.trim()) {
+  if (!password?.trim()) {
     throw new ApiError(400, "provide password");
   }
   const existDoctor = await Doctor.findById(doctorId);
