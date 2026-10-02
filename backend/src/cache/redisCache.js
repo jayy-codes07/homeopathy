@@ -75,8 +75,17 @@ export const createRedisCache = (url) => {
         client.once("ready", onReady);
       });
     },
+    // Always resolves. disconnect() is synchronous, drops the socket and, unlike
+    // quit(), does not wait for a reply or schedule a reconnect, so nothing is
+    // left to keep the event loop alive. quit() would reject while offline
+    // because enableOfflineQueue is false.
     async close() {
-      client.disconnect();
+      try {
+        client.removeAllListeners("ready");
+        client.disconnect();
+      } catch {
+        // already closed
+      }
     },
   };
 

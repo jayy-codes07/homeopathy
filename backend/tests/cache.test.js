@@ -17,6 +17,7 @@ let mongod;
 let server;
 let baseUrl;
 let cacheModule;
+let cacheReady = false;
 
 const json = async (path, { method = "GET", token, body } = {}) => {
   const res = await fetch(`${baseUrl}/api/v1${path}`, {
@@ -60,8 +61,10 @@ before(async () => {
   process.env.MONGODB_URI = mongod.getUri();
   const { app } = await import("../src/app.js");
   cacheModule = await import("../src/cache/index.js");
-  const connected = await cacheModule.getCache().ready(3000);
-  assert.equal(connected, true, `cache driver ${cacheModule.getCache().name} not ready`);
+  // Not asserted here: a throw inside before() skips after(), which would
+  // leave the Redis client and Mongo open and hang the process instead of
+  // failing fast. The first test asserts it instead.
+  cacheReady = await cacheModule.getCache().ready(3000);
   await new Promise((resolve) => {
     server = app.listen(0, resolve);
   });
@@ -73,6 +76,10 @@ after(async () => {
   await cacheModule.closeCache();
   await mongoose.disconnect();
   await mongod.stop();
+});
+
+test("cache driver is connected before the cache tests run", () => {
+  assert.equal(cacheReady, true, `cache driver ${cacheModule.getCache().name} not ready`);
 });
 
 test("second identical list request is served from the cache", async () => {
