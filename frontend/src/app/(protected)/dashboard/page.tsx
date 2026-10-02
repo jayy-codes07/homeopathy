@@ -99,7 +99,7 @@ const Page = () => {
 
   useEffect(() => {
     setDoctorName(localStorage.getItem("username") || "");
-    if (!localStorage.getItem("doctorJWT")) router.push("login");
+    if (!localStorage.getItem("doctorJWT")) router.push("/login");
   }, []);
 
   useEffect(() => {
@@ -112,6 +112,9 @@ const Page = () => {
   }, [debouncedSearch]);
 
   useEffect(() => {
+    // Not logged in: the effect above is already redirecting to /login, so
+    // do not fire a request that would only show an "unauthorized" toast.
+    if (!localStorage.getItem("doctorJWT")) return;
     const load = async () => {
       try {
         setLoading(true);
