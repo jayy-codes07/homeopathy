@@ -4,7 +4,20 @@ import { asyncHandler } from "../utility/asyncHandler.js";
 import { ApiError } from "../utility/apiError.js";
 import { ApiResponse } from "../utility/apiResponse.js";
 import { isValidObjectId } from "mongoose";
-import { Patient } from "../models/patient.model.js";
+import { findOwnedPatient } from "../utility/ownedPatient.js";
+
+// Loads a follow-up only if its patient belongs to the logged in doctor.
+const findOwnedFollowup = async (followupId, doctorId) => {
+  if (!isValidObjectId(followupId)) {
+    throw new ApiError(400, "provide valid followupId");
+  }
+  const followUp = await FollowUP.findById(followupId);
+  if (!followUp) {
+    throw new ApiError(404, "followup does not found in database");
+  }
+  await findOwnedPatient(followUp.patient, doctorId);
+  return followUp;
+};
 
 const createFollowup = asyncHandler(async (req, res) => {
   const { followUpDate, symptoms, advise, medicine } = req.body;
@@ -18,6 +31,8 @@ const createFollowup = asyncHandler(async (req, res) => {
   ) {
     throw new ApiError(400, "needed to provide all details");
   }
+
+  await findOwnedPatient(patientId, req.doctor._id);
 
   const followUP = await FollowUP.create({
     patient: patientId,
@@ -40,15 +55,8 @@ const getPatientFollowup = asyncHandler(async (req, res) => {
   const { patientId } = req.params;
   const { page = 1, limit = 10 } = req.query;
 
-  if (!isValidObjectId(patientId)) {
-    throw new ApiError(400, "provide valid patientId");
-  }
-  const patient = await Patient.findById(patientId);
-  if (!patient) {
-    throw new ApiError(404, "patient does not exist in database");
-  }
+  await findOwnedPatient(patientId, req.doctor._id);
 
-  //   const followUp = await FollowUP.find({ patient: patientId });
   const followUp = await FollowUP.aggregate([
     { $match: { patient: new mongoose.Types.ObjectId(patientId) } },
     {
@@ -74,9 +82,7 @@ const updatePatientFollowup = asyncHandler(async (req, res) => {
   const { followupId } = req.params;
   const { symptoms, advise, medicine } = req.body;
 
-  if (!isValidObjectId(followupId)) {
-    throw new ApiError(400, "provide valid followupId");
-  }
+  await findOwnedFollowup(followupId, req.doctor._id);
 
   const updateField = {};
 
@@ -91,7 +97,7 @@ const updatePatientFollowup = asyncHandler(async (req, res) => {
   );
 
   if (!updatedFollowUP) {
-    throw new ApiError(400, "followup does not found in database");
+    throw new ApiError(404, "followup does not found in database");
   }
 
   return res
@@ -103,14 +109,11 @@ const updatePatientFollowup = asyncHandler(async (req, res) => {
 
 const deltePatientFollowup = asyncHandler(async (req, res) => {
   const { followupId } = req.params;
-  //  verify
-  if (!isValidObjectId(followupId)) {
-    throw new ApiError(400, "provide valid followup id");
-  }
+  await findOwnedFollowup(followupId, req.doctor._id);
   const followUP = await FollowUP.findByIdAndDelete(followupId);
 
   if (!followUP) {
-    throw new ApiError(500, "followup does not found");
+    throw new ApiError(404, "followup does not found");
   }
 
   return res

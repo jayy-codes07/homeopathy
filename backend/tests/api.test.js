@@ -236,3 +236,58 @@ test("a doctor cannot modify or delete another doctor's account", async () => {
   assert.equal(own.status, 200);
   assert.equal(own.body.data.fullname, "Dr Owner");
 });
+
+test("follow-ups are scoped to the patient's own doctor", async () => {
+  const a = await loginFull("fu-owner@example.com");
+  const b = await loginFull("fu-other@example.com");
+
+  const created = await json("/patient/register", {
+    method: "POST",
+    token: a.token,
+    body: { ...validPatient, phoneNumber: "9000000099" },
+  });
+  const patientId = created.body.data._id;
+  const followup = { followUpDate: "2026-01-01", symptoms: "better", advise: "rest", medicine: "Nux 30" };
+
+  const ownCreate = await json(`/followup/create-followup/${patientId}`, {
+    method: "POST",
+    token: a.token,
+    body: followup,
+  });
+  assert.equal(ownCreate.status, 201);
+  const followupId = ownCreate.body.data._id;
+
+  const crossCreate = await json(`/followup/create-followup/${patientId}`, {
+    method: "POST",
+    token: b.token,
+    body: followup,
+  });
+  assert.equal(crossCreate.status, 404);
+
+  const crossList = await json(`/followup/patient-followup/${patientId}`, { token: b.token });
+  assert.equal(crossList.status, 404);
+
+  const crossUpdate = await json(`/followup/patient-followup/${followupId}`, {
+    method: "PATCH",
+    token: b.token,
+    body: { symptoms: "tampered" },
+  });
+  assert.equal(crossUpdate.status, 404);
+
+  const crossDelete = await json(`/followup/patient-followup/${followupId}`, {
+    method: "DELETE",
+    token: b.token,
+  });
+  assert.equal(crossDelete.status, 404);
+
+  const ownList = await json(`/followup/patient-followup/${patientId}`, { token: a.token });
+  assert.equal(ownList.status, 200);
+  assert.equal(ownList.body.data.length, 1, "follow-up survived the cross-doctor attempts");
+  assert.equal(ownList.body.data[0].symptoms, "better");
+
+  const ownDelete = await json(`/followup/patient-followup/${followupId}`, {
+    method: "DELETE",
+    token: a.token,
+  });
+  assert.equal(ownDelete.status, 200);
+});
