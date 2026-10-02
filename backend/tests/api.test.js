@@ -1,0 +1,186 @@
+// API tests on the real Express app against an in-memory MongoDB.
+// Runs with Node's built-in test runner: `npm test`.
+import { test, before, after } from "node:test";
+import assert from "node:assert/strict";
+import mongoose from "mongoose";
+import { MongoMemoryServer } from "mongodb-memory-server";
+
+// Must be set before app.js is imported: dotenv does not override values
+// that already exist, so the real .env (if present) cannot leak in.
+process.env.ACCESS_TOKEN_SECRET = "test-access-secret";
+process.env.ACCESS_TOKEN_EXPIRE = "1h";
+process.env.REFRESH_TOKEN_SECRET = "test-refresh-secret";
+process.env.REFRESH_TOKEN_EXPIRE = "1d";
+process.env.NODE_ENV = "test";
+
+let mongod;
+let server;
+let baseUrl;
+
+const json = async (path, { method = "GET", token, body } = {}) => {
+  const res = await fetch(`${baseUrl}/api/v1${path}`, {
+    method,
+    headers: {
+      "content-type": "application/json",
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return { status: res.status, body: await res.json() };
+};
+
+const registerAndLogin = async (email) => {
+  const doctor = { fullname: "Dr Test", email, password: "secret123", degree: "BHMS" };
+  const reg = await json("/doctor/register", { method: "POST", body: doctor });
+  assert.equal(reg.status, 201, JSON.stringify(reg.body));
+  const login = await json("/doctor/login", {
+    method: "POST",
+    body: { email, password: doctor.password },
+  });
+  assert.equal(login.status, 200, JSON.stringify(login.body));
+  return login.body.data.Accesstoken;
+};
+
+const validPatient = {
+  patientName: "Asha Patel",
+  age: 34,
+  gender: "FEMALE",
+  diagnosis: "Migraine",
+  medicine: "Belladonna 30",
+  phoneNumber: "9876543210",
+};
+
+before(async () => {
+  mongod = await MongoMemoryServer.create();
+  process.env.MONGODB_URI = mongod.getUri();
+  const { app } = await import("../src/app.js");
+  await new Promise((resolve) => {
+    server = app.listen(0, resolve);
+  });
+  baseUrl = `http://127.0.0.1:${server.address().port}`;
+});
+
+after(async () => {
+  await new Promise((resolve) => server.close(resolve));
+  await mongoose.disconnect();
+  await mongod.stop();
+});
+
+test("register then login returns an access token", async () => {
+  const token = await registerAndLogin("login@example.com");
+  assert.ok(token.split(".").length === 3, "expected a JWT");
+
+  const login = await json("/doctor/login", {
+    method: "POST",
+    body: { email: "login@example.com", password: "secret123" },
+  });
+  assert.equal(login.body.success, true);
+  assert.equal(login.body.data.doctor.email, "login@example.com");
+  assert.equal(login.body.data.doctor.password, undefined, "password must not be returned");
+});
+
+test("login with the wrong password is rejected", async () => {
+  await registerAndLogin("wrongpw@example.com");
+  const login = await json("/doctor/login", {
+    method: "POST",
+    body: { email: "wrongpw@example.com", password: "nope" },
+  });
+  assert.equal(login.status, 400);
+  assert.equal(login.body.success, false);
+  assert.equal(login.body.data, undefined);
+});
+
+test("protected routes reject requests without a token", async () => {
+  const res = await json("/patient/all-patient");
+  // verifyJWT currently answers 400 (not 401) for a missing token.
+  assert.equal(res.status, 400);
+  assert.equal(res.body.success, false);
+});
+
+test("patient creation validates required fields and phone number", async () => {
+  const token = await registerAndLogin("validation@example.com");
+
+  const missing = await json("/patient/register", {
+    method: "POST",
+    token,
+    body: { patientName: "No Phone" },
+  });
+  assert.equal(missing.status, 400);
+  assert.match(missing.body.message, /required/i);
+
+  const badPhone = await json("/patient/register", {
+    method: "POST",
+    token,
+    body: { ...validPatient, phoneNumber: "12345" },
+  });
+  assert.equal(badPhone.status, 400);
+  assert.match(badPhone.body.message, /phone/i);
+
+  const ok = await json("/patient/register", { method: "POST", token, body: validPatient });
+  assert.equal(ok.status, 201);
+  assert.equal(ok.body.data.patientName, validPatient.patientName);
+
+  const duplicate = await json("/patient/register", { method: "POST", token, body: validPatient });
+  assert.equal(duplicate.status, 400, "same phone number twice for one doctor");
+});
+
+test("a doctor cannot see another doctor's patients", async () => {
+  const tokenA = await registerAndLogin("doctor-a@example.com");
+  const tokenB = await registerAndLogin("doctor-b@example.com");
+
+  const created = await json("/patient/register", {
+    method: "POST",
+    token: tokenA,
+    body: { ...validPatient, phoneNumber: "9000000001" },
+  });
+  assert.equal(created.status, 201);
+  const patientId = created.body.data._id;
+
+  const ownRead = await json(`/patient/${patientId}`, { token: tokenA });
+  assert.equal(ownRead.status, 200);
+
+  const crossRead = await json(`/patient/${patientId}`, { token: tokenB });
+  assert.equal(crossRead.status, 404);
+
+  const crossUpdate = await json(`/patient/${patientId}`, {
+    method: "PATCH",
+    token: tokenB,
+    body: { diagnosis: "tampered" },
+  });
+  assert.equal(crossUpdate.status, 404);
+
+  const listB = await json("/patient/all-patient", { token: tokenB });
+  assert.equal(listB.status, 200);
+  assert.deepEqual(listB.body.data, [], "doctor B has no patients");
+});
+
+test("patient list filters by search term and keeps pagination counts", async () => {
+  const token = await registerAndLogin("search@example.com");
+  const names = ["Ravi Kumar", "Priya Sharma", "ravina Desai"];
+  for (const [i, patientName] of names.entries()) {
+    const res = await json("/patient/register", {
+      method: "POST",
+      token,
+      body: { ...validPatient, patientName, phoneNumber: `91000000${i}0` },
+    });
+    assert.equal(res.status, 201);
+  }
+
+  const all = await json("/patient/all-patient?limit=2", { token });
+  assert.equal(all.body.data.totalPatients, 3);
+  assert.equal(all.body.data.totalPages, 2);
+  assert.equal(all.body.data.patient.length, 2);
+
+  const byName = await json("/patient/all-patient?search=RAVI", { token });
+  assert.equal(byName.body.data.totalPatients, 2, "case-insensitive name match");
+  assert.deepEqual(
+    byName.body.data.patient.map((p) => p.patientName).sort(),
+    ["Ravi Kumar", "ravina Desai"],
+  );
+
+  const byPhone = await json("/patient/all-patient?search=9100000010", { token });
+  assert.equal(byPhone.body.data.patient[0].patientName, "Priya Sharma");
+
+  const regexChars = await json("/patient/all-patient?search=.*", { token });
+  assert.deepEqual(regexChars.body.data, [], "regex metacharacters are matched literally");
+});
