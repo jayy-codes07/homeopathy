@@ -3,7 +3,6 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import "dotenv/config";
 // routes
-// import userRoute from "./routes/user.route.js";
 import patientRoute from "./routes/patient.route.js";
 import followUpRoute from "./routes/followUP.route.js";
 import caseRoute from "./routes/case.route.js";

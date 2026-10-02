@@ -22,7 +22,7 @@ const Page = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // NEW: only for the eye-icon toggle, no backend impact
+  const [showPassword, setShowPassword] = useState(false);
 
   const saveTokenAndRedirect = async () => {
     const response = await api.post("/doctor/login", formData);
@@ -33,7 +33,7 @@ const Page = () => {
     router.push("/dashboard");
   };
 
-  const handelSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -96,7 +96,7 @@ const Page = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handelSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
 
             {!isLogin && (
               <div className="space-y-1">

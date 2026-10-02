@@ -1,4 +1,4 @@
-import bcrypt, { hash } from "bcrypt";
+import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
 
