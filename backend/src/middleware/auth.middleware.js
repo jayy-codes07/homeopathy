@@ -9,21 +9,23 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     req.headers.authorization?.replace("Bearer ", "");
 
   if (!token) {
-    throw new ApiError(400, "unauthorized user");
+    throw new ApiError(401, "unauthorized user");
   }
 
-  const verifyToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-  if (!verifyToken) {
-    throw new ApiError(400, "Accesstoken is incorrect");
+  let payload;
+  try {
+    payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+  } catch (err) {
+    // Covers malformed, tampered and expired tokens alike.
+    throw new ApiError(401, err.name === "TokenExpiredError" ? "jwt expired" : "invalid token");
   }
-  const userid = verifyToken?.id;
 
-  const doctor = await Doctor.findById(userid).select(
+  const doctor = await Doctor.findById(payload.id).select(
     "-password -refreshToken",
   );
 
   if (!doctor) {
-    throw new ApiError(400, "doctor does not found");
+    throw new ApiError(401, "doctor does not found");
   }
 
   req.doctor = doctor;
