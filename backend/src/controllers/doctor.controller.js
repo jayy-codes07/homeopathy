@@ -6,6 +6,17 @@ import { asyncHandler } from "../utility/asyncHandler.js";
 import { uploadtocloudinary } from "../utility/cloudinary.js";
 import jwt from "jsonwebtoken";
 
+// The URL carries a doctorId for readability, but authorization comes from the
+// verified token: a doctor may only change or delete their own account.
+const assertOwnDoctor = (doctorId, req) => {
+  if (!isValidObjectId(doctorId)) {
+    throw new ApiError(400, "provide valid doctorId");
+  }
+  if (String(doctorId) !== String(req.doctor._id)) {
+    throw new ApiError(403, "you can only modify your own account");
+  }
+};
+
 const registerDoctor = asyncHandler(async (req, res) => {
   const { fullname, email, password, degree } = req.body;
 
@@ -158,9 +169,7 @@ const updateDoctorDetails = asyncHandler(async (req, res) => {
   const { doctorId } = req.params;
   const { fullname, email, degree } = req.body;
 
-  if (!isValidObjectId(doctorId)) {
-    throw new ApiError(400, "provide valid doctorId");
-  }
+  assertOwnDoctor(doctorId, req);
   let update = {};
 
   if (fullname?.trim()) {
@@ -193,9 +202,7 @@ const updateDoctorPassword = asyncHandler(async (req, res) => {
 
   const { password } = req.body;
 
-  if (!isValidObjectId(doctorId)) {
-    throw new ApiError(400, "provide valid doctor id");
-  }
+  assertOwnDoctor(doctorId, req);
 
   if (!password.trim()) {
     throw new ApiError(400, "provide password");
@@ -221,9 +228,7 @@ const updateDoctorPassword = asyncHandler(async (req, res) => {
 const updateDoctorAvatar = asyncHandler(async (req, res) => {
   const { doctorId } = req.params;
 
-  if (!isValidObjectId(doctorId)) {
-    throw new ApiError(400, "provide valid doctor id");
-  }
+  assertOwnDoctor(doctorId, req);
 
   if (!req?.file?.path) {
     throw new ApiError(400, "file is not provided");
@@ -252,9 +257,7 @@ const updateDoctorAvatar = asyncHandler(async (req, res) => {
 const DeleteDoctor = asyncHandler(async (req, res) => {
   const { doctorId } = req.params;
 
-  if (!isValidObjectId(doctorId)) {
-    throw new ApiError(400, "provide valid doctor id");
-  }
+  assertOwnDoctor(doctorId, req);
 
   const doctor = await Doctor.findByIdAndDelete(doctorId);
 
