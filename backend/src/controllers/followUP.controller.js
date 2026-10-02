@@ -107,7 +107,7 @@ const updatePatientFollowup = asyncHandler(async (req, res) => {
     );
 });
 
-const deltePatientFollowup = asyncHandler(async (req, res) => {
+const deletePatientFollowup = asyncHandler(async (req, res) => {
   const { followupId } = req.params;
   await findOwnedFollowup(followupId, req.doctor._id);
   const followUP = await FollowUP.findByIdAndDelete(followupId);
@@ -125,5 +125,5 @@ export {
   createFollowup,
   getPatientFollowup,
   updatePatientFollowup,
-  deltePatientFollowup,
+  deletePatientFollowup,
 };

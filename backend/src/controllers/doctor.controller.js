@@ -20,8 +20,6 @@ const assertOwnDoctor = (doctorId, req) => {
 const registerDoctor = asyncHandler(async (req, res) => {
   const { fullname, email, password, degree } = req.body;
 
-  // const { avatar } = req?.file;
-
   if (
     !fullname?.trim() ||
     !email?.trim() ||

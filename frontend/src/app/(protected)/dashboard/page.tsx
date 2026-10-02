@@ -81,7 +81,7 @@ const Page = () => {
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const router = useRouter();
 
-  const functionFetchData = async (page: number, searchTerm: string) => {
+  const fetchPatients = async (page: number, searchTerm: string) => {
     const patientData = await api.get("/patient/all-patient", {
       params: { page, limit: LIMIT, search: searchTerm },
     });
@@ -118,7 +118,7 @@ const Page = () => {
     const load = async () => {
       try {
         setLoading(true);
-        await functionFetchData(currentPage, debouncedSearch);
+        await fetchPatients(currentPage, debouncedSearch);
         setHasLoadedOnce(true);
       } catch (error: any) {
         const message = error.response?.data?.message || "Failed to fetch patients";
@@ -136,7 +136,6 @@ const Page = () => {
     load();
   }, [currentPage, debouncedSearch]);
 
-  const filtered = patient;
 
   const overdueCount = patient.filter((p) => {
     if (!p.followUpDate) return false;
@@ -216,13 +215,13 @@ const Page = () => {
 
       {/* Patient Rows */}
       <div className="bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/40 rounded-2xl overflow-hidden">
-        {filtered.map((p, idx) => {
+        {patient.map((p, idx) => {
           const badge = getFollowupBadge(p.followUpDate);
           return (
             <div
               key={p._id}
               onClick={() => router.push(`/patients/${p._id}`)}
-              className={`flex items-center gap-4 px-5 py-6 cursor-pointer hover:bg-[var(--color-surface-container-low)] transition-colors duration-150 ${idx !== filtered.length - 1 ? "border-b border-[var(--color-outline-variant)]/30" : ""
+              className={`flex items-center gap-4 px-5 py-6 cursor-pointer hover:bg-[var(--color-surface-container-low)] transition-colors duration-150 ${idx !== patient.length - 1 ? "border-b border-[var(--color-outline-variant)]/30" : ""
                 }`}
             >
               <div className="h-10 w-10 rounded-full bg-[color:var(--color-primary-container)]/30 flex items-center justify-center text-[var(--color-on-primary-container)] text-sm font-bold flex-shrink-0">
@@ -252,7 +251,7 @@ const Page = () => {
         })}
 
         {/* Empty State */}
-        {filtered.length === 0 && !loading && (
+        {patient.length === 0 && !loading && (
           <div className="text-center py-24">
             <div className="flex justify-center text-[var(--color-outline-variant)] mb-4">
               <LeafIcon />
