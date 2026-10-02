@@ -238,21 +238,21 @@ const searchPatient = asyncHandler(async (req, res) => {
 
   if (patientName?.trim())
     conditions.push({
-      patientName: { $regex: patientName?.trim(), $options: "i" },
+      patientName: { $regex: escapeRegex(patientName.trim()), $options: "i" },
     });
 
   if (diagnosis?.trim())
     conditions.push({
-      diagnosis: { $regex: diagnosis?.trim(), $options: "i" },
+      diagnosis: { $regex: escapeRegex(diagnosis.trim()), $options: "i" },
     });
 
   if (medicine?.trim())
     conditions.push({
-      medicine: { $regex: medicine?.trim(), $options: "i" },
+      medicine: { $regex: escapeRegex(medicine.trim()), $options: "i" },
     });
   if (phoneNumber?.trim())
     conditions.push({
-      phoneNumber: { $regex: phoneNumber?.trim(), $options: "i" },
+      phoneNumber: { $regex: escapeRegex(phoneNumber.trim()), $options: "i" },
     });
 
   const filterPatients = await Patient.aggregate([
