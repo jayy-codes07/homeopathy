@@ -15,8 +15,6 @@ const Page = () => {
     } else {
       router.push('/login')
     }
-    router.push('/dashboard')
-
   }, [])
 
   return <div><Loading /></div>
