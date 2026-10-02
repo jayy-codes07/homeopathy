@@ -1,24 +1,20 @@
 "use client"
 
 import { useRouter } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { logout as logoutAction, selectDoctorName } from '@/store/authSlice'
 
 const Navbar = () => {
-    const [username, setUsername] = useState<string>('User')
     const router = useRouter()
+    const dispatch = useAppDispatch()
+    const username = useAppSelector(selectDoctorName) || 'User'
     const logout = () => {
         const confirmed = confirm("Are you sure you want to logout?")
         if (!confirmed) return
-        localStorage.removeItem('doctorJWT')
+        dispatch(logoutAction())
         router.push('/login')
     }
-
-    useEffect(() => {
-
-        const name = localStorage.getItem("username")
-        setUsername(name || "User")
-
-    }, [])
 
     return (
         <nav className="bg-[var(--color-surface-container-lowest)] border-b border-[var(--color-outline-variant)]/40">
