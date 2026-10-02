@@ -21,6 +21,7 @@ jobs:
       - run: npm ci
       # No build step for plain Node; confirm every module loads.
       - run: node -e "import('./src/app.js').then(() => process.exit(0))"
+      - run: npm test
 
   frontend:
     runs-on: ubuntu-latest
