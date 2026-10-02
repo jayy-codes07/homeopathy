@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests",
+    "seed:demo": "node scripts/seed-demo.js",
     "dev": "nodemon src/index.js",
     "start": "node src/index.js"
   },
