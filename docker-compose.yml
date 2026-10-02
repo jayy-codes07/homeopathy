@@ -1,0 +1,53 @@
+# Local development stack: API + MongoDB + Redis.
+#   docker compose up --build        everything, API on http://localhost:8000
+#   docker compose up -d redis       only Redis (then run the API with npm run dev)
+#   docker compose down -v           stop and wipe the data volumes
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\" | grep 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    # Secrets (JWT, Cloudinary) come from backend/.env; the connection URLs
+    # below override the localhost ones in that file because `environment`
+    # takes precedence over `env_file`.
+    env_file:
+      - ./backend/.env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/homeopathy
+      REDIS_URL: redis://redis:6379
+      PORT: "8000"
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "8000:8000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  mongo-data:
+  redis-data:
