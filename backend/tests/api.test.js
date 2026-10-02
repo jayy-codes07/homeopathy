@@ -29,7 +29,8 @@ const json = async (path, { method = "GET", token, body } = {}) => {
   return { status: res.status, body: await res.json() };
 };
 
-const registerAndLogin = async (email) => {
+// Returns both the access token and the doctor's own id.
+const loginFull = async (email) => {
   const doctor = { fullname: "Dr Test", email, password: "secret123", degree: "BHMS" };
   const reg = await json("/doctor/register", { method: "POST", body: doctor });
   assert.equal(reg.status, 201, JSON.stringify(reg.body));
@@ -38,8 +39,10 @@ const registerAndLogin = async (email) => {
     body: { email, password: doctor.password },
   });
   assert.equal(login.status, 200, JSON.stringify(login.body));
-  return login.body.data.Accesstoken;
+  return { token: login.body.data.Accesstoken, doctorId: login.body.data.doctor._id };
 };
+
+const registerAndLogin = async (email) => (await loginFull(email)).token;
 
 const validPatient = {
   patientName: "Asha Patel",
@@ -183,4 +186,53 @@ test("patient list filters by search term and keeps pagination counts", async ()
 
   const regexChars = await json("/patient/all-patient?search=.*", { token });
   assert.deepEqual(regexChars.body.data, [], "regex metacharacters are matched literally");
+});
+
+test("a doctor cannot modify or delete another doctor's account", async () => {
+  const a = await loginFull("owner@example.com");
+  const b = await loginFull("attacker@example.com");
+
+  const details = await json(`/doctor/Details/${a.doctorId}`, {
+    method: "PATCH",
+    token: b.token,
+    body: { fullname: "Hijacked" },
+  });
+  assert.equal(details.status, 403);
+
+  const password = await json(`/doctor/Password/${a.doctorId}`, {
+    method: "PATCH",
+    token: b.token,
+    body: { password: "newpass123" },
+  });
+  assert.equal(password.status, 403);
+
+  const avatar = await json(`/doctor/Avatar/${a.doctorId}`, {
+    method: "PATCH",
+    token: b.token,
+    body: {},
+  });
+  assert.equal(avatar.status, 403);
+
+  const del = await json(`/doctor/doctor/${a.doctorId}`, {
+    method: "DELETE",
+    token: b.token,
+  });
+  assert.equal(del.status, 403);
+
+  // Doctor A is untouched and can still log in with the original password.
+  const login = await json("/doctor/login", {
+    method: "POST",
+    body: { email: "owner@example.com", password: "secret123" },
+  });
+  assert.equal(login.status, 200);
+  assert.equal(login.body.data.doctor.fullname, "Dr Test");
+
+  // The owner can still update their own details.
+  const own = await json(`/doctor/Details/${a.doctorId}`, {
+    method: "PATCH",
+    token: a.token,
+    body: { fullname: "Dr Owner" },
+  });
+  assert.equal(own.status, 200);
+  assert.equal(own.body.data.fullname, "Dr Owner");
 });
