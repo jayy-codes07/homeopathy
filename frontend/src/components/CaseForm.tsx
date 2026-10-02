@@ -8,10 +8,21 @@ interface CaseFormProps {
     onChange: (value: CaseFormData) => void
     // Drives whether the menses field is shown; hidden for male patients.
     gender?: "MALE" | "FEMALE" | "OTHER"
+    // "register" is step 2 of registration, "create" adds a case to an existing
+    // patient, "edit" revises a saved one. Only wording and chrome differ.
+    mode?: "register" | "create" | "edit"
+    // Opens Personal History on mount, used when editing a case that has some.
+    expandPersonalHistory?: boolean
     onBack: () => void
     onSubmit: () => void
     loading: boolean
     error: string
+}
+
+const MODE_TEXT = {
+    register: { back: "Back", submit: "Complete Registration", saving: "Saving..." },
+    create: { back: "Cancel", submit: "Save Case", saving: "Saving..." },
+    edit: { back: "Cancel", submit: "Save Changes", saving: "Saving..." },
 }
 
 const THERMAL_OPTIONS = [
@@ -59,9 +70,20 @@ const PRESENTING_COMPLAINT_FIELDS: { key: keyof PresentingComplaint; label: stri
 
 // Step 2 of registration: section 1 of the Acute Case Record. Later sections
 // (physical examination, diagnosis, treatment) nest under Case the same way.
-const CaseForm = ({ value, onChange, gender, onBack, onSubmit, loading, error }: CaseFormProps) => {
+const CaseForm = ({
+    value,
+    onChange,
+    gender,
+    mode = "register",
+    expandPersonalHistory = false,
+    onBack,
+    onSubmit,
+    loading,
+    error,
+}: CaseFormProps) => {
 
-    const [showPersonalHistory, setShowPersonalHistory] = useState(false)
+    const [showPersonalHistory, setShowPersonalHistory] = useState(expandPersonalHistory)
+    const text = MODE_TEXT[mode]
 
     const handleSubmit = (e: React.SyntheticEvent) => {
         e.preventDefault()
@@ -86,13 +108,15 @@ const CaseForm = ({ value, onChange, gender, onBack, onSubmit, loading, error }:
         .filter((field) => field.key !== "menses" || gender !== "MALE")
 
     return (
-        <div className="mx-5 bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/40 rounded-2xl p-6 md:p-8 shadow-[0_2px_8px_rgba(26,28,27,0.06)] mb-8">
+        <div className={`bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/40 rounded-2xl p-6 md:p-8 ${mode === "edit" ? "" : "mx-5 shadow-[0_2px_8px_rgba(26,28,27,0.06)] mb-8"}`}>
             <div className="mb-8 border-b border-[var(--color-outline-variant)]/40 pb-6">
                 <h1 className="text-2xl md:text-3xl font-semibold text-[var(--color-on-surface)]">
                     Interrogation
                 </h1>
                 <p className="text-[var(--color-on-surface-variant)] text-sm mt-1">
-                    Record why the patient came in, in their own words. Only the chief complaint is required.
+                    {mode === "edit"
+                        ? "Revise this case record. Only the chief complaint is required."
+                        : "Record why the patient came in, in their own words. Only the chief complaint is required."}
                 </p>
             </div>
 
@@ -226,7 +250,7 @@ const CaseForm = ({ value, onChange, gender, onBack, onSubmit, loading, error }:
                         disabled={loading}
                         className="md:w-auto px-6 py-4 rounded-xl font-semibold border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-low)] hover:text-[var(--color-primary)] transition-all duration-200"
                     >
-                        Back
+                        {text.back}
                     </button>
                     <button
                         type="submit"
@@ -237,7 +261,7 @@ const CaseForm = ({ value, onChange, gender, onBack, onSubmit, loading, error }:
                                 : "bg-[var(--color-primary)] hover:opacity-90 text-[var(--color-on-primary)] shadow-sm"
                             }`}
                     >
-                        {loading ? "Saving..." : "Complete Registration"}
+                        {loading ? text.saving : text.submit}
                     </button>
                 </div>
             </form>

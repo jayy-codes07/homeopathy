@@ -1,17 +1,24 @@
 "use client"
 
 import React, { use, useEffect, useState } from 'react'
-import { Followup, Patient } from '@/types'
+import { Case, CaseFormData, Followup, Patient } from '@/types'
 import api from '@/utils/api'
 import Loading from '@/components/Loading'
 import { useRouter } from 'next/navigation'
 import PatientForm from '@/components/PatientForm'
+import CaseDetails from '@/components/CaseDetails'
+import CaseForm from '@/components/CaseForm'
+import { hasPersonalHistory, toCaseFormData, buildCasePayload } from '@/utils/case'
 
 const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
   const patientid = use(params).patientId
 
   const [patient, setPatient] = useState<Patient>()
   const [followups, setFollowups] = useState<Followup[]>([])
+  const [cases, setCases] = useState<Case[]>([])
+  const [editingCaseId, setEditingCaseId] = useState<string | null>(null)
+  const [caseDraft, setCaseDraft] = useState<CaseFormData | null>(null)
+  const [caseLoading, setCaseLoading] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [editLoading, setEditLoading] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -28,6 +35,8 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
         setPatient(patientres.data.data)
         const followupres = await api.get(`/followup/patient-followup/${patientid}`)
         setFollowups(followupres.data.data)
+        const caseres = await api.get(`/case/patient-case/${patientid}`)
+        setCases(caseres.data.data)
       } catch (error: any) {
         setError(error.response?.data?.message || "Error fetching data")
       } finally {
@@ -67,6 +76,27 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
       setFollowups(prev => prev.map(f => f._id === id ? editData : f))
     } catch (error: any) {
       setError(error.response?.data?.message || "Failed to update followup")
+    }
+  }
+
+  const startEditCase = (caseRecord: Case) => {
+    setEditingCaseId(caseRecord._id)
+    setCaseDraft(toCaseFormData(caseRecord))
+    setError("")
+  }
+
+  const handleSaveCase = async () => {
+    if (!caseDraft || !editingCaseId) return
+    try {
+      setCaseLoading(true)
+      const response = await api.patch(`/case/${editingCaseId}`, buildCasePayload(caseDraft))
+      setCases(prev => prev.map(c => c._id === editingCaseId ? response.data.data : c))
+      setEditingCaseId(null)
+      setCaseDraft(null)
+    } catch (error: any) {
+      setError(error.response?.data?.message || "Failed to update case")
+    } finally {
+      setCaseLoading(false)
     }
   }
 
@@ -198,6 +228,58 @@ const Page = ({ params }: { params: Promise<{ patientId: string }> }) => {
           <div className="bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/40 rounded-2xl p-5 lg:p-6">
             <div className="text-xs text-[var(--color-on-surface-variant)] uppercase tracking-widest font-semibold mb-2">Address</div>
             <div className="text-[var(--color-on-surface)] text-lg">{patient?.address}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Case Records */}
+      {!showEdit && (
+        <div className="bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/40 rounded-2xl p-6 lg:p-8 mb-6 lg:mb-8">
+
+          <div className="flex justify-between items-center mb-6 pb-5 border-b border-[var(--color-outline-variant)]/40">
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl lg:text-2xl font-medium text-[var(--color-on-surface)]">Case records</h2>
+              <span className="bg-[color:var(--color-primary-container)]/30 text-[var(--color-on-primary-container)] px-3 py-1 rounded-full text-xs font-medium">
+                {cases.length > 0 ? `${cases.length} ${cases.length === 1 ? "case" : "cases"}` : "0 cases"}
+              </span>
+            </div>
+            <button
+              className="bg-[var(--color-primary)] hover:opacity-90 text-[var(--color-on-primary)] font-medium px-4 py-2 rounded-xl transition-all duration-200 flex items-center gap-2 text-sm"
+              onClick={() => router.push(`/patients/${patientid}/case`)}
+            >
+              + Add case
+            </button>
+          </div>
+
+          <div className="space-y-5">
+            {cases.length === 0 && (
+              <div className="text-center py-12 text-[var(--color-outline)]">
+                <p>No case records yet</p>
+                <p className="text-sm mt-1">Add the first case record for this patient</p>
+              </div>
+            )}
+            {cases.map((caseRecord) => (
+              editingCaseId === caseRecord._id && caseDraft ? (
+                <CaseForm
+                  key={caseRecord._id}
+                  mode="edit"
+                  value={caseDraft}
+                  onChange={setCaseDraft}
+                  gender={patient?.gender}
+                  expandPersonalHistory={hasPersonalHistory(caseRecord)}
+                  onBack={() => { setEditingCaseId(null); setCaseDraft(null) }}
+                  onSubmit={handleSaveCase}
+                  loading={caseLoading}
+                  error={error}
+                />
+              ) : (
+                <CaseDetails
+                  key={caseRecord._id}
+                  caseRecord={caseRecord}
+                  onEdit={() => startEditCase(caseRecord)}
+                />
+              )
+            ))}
           </div>
         </div>
       )}

@@ -6,67 +6,14 @@ import api from "@/utils/api";
 import { useRouter } from "next/navigation";
 import PatientForm from "@/components/PatientForm";
 import CaseForm from "@/components/CaseForm";
+import { buildCasePayload, emptyCaseFormData } from "@/utils/case";
 type PatientFormData = Omit<Patient, "_id">;
-
-const emptyCase: CaseFormData = {
-  chiefComplaint: "",
-  interrogation: {
-    presentingComplaint: {
-      locationExtension: "",
-      sensation: "",
-      modalities: "",
-      concomitants: "",
-    },
-    historyOfPresentIllness: "",
-    pastHistory: "",
-    personalHistory: {
-      thermalReactivity: "",
-      appetite: "",
-      desires: "",
-      aversion: "",
-      intolerance: "",
-      thirst: "",
-      bowel: "",
-      urine: "",
-      sleep: "",
-      dream: "",
-      perspiration: "",
-      addiction: "",
-      menses: "",
-      mentals: "",
-    },
-  },
-};
-
-// Drops blank fields so an untouched interrogation is left off the request
-// entirely rather than saved as a tree of empty strings.
-const pruneEmpty = (source: Record<string, string>) => {
-  const filled = Object.entries(source).filter(([, value]) => value.trim());
-  return filled.length ? Object.fromEntries(filled) : undefined;
-};
-
-const buildInterrogation = (data: CaseFormData["interrogation"]) => {
-  const interrogation: Record<string, unknown> = {
-    ...pruneEmpty({
-      historyOfPresentIllness: data.historyOfPresentIllness,
-      pastHistory: data.pastHistory,
-    }),
-  };
-
-  const presentingComplaint = pruneEmpty(data.presentingComplaint);
-  if (presentingComplaint) interrogation.presentingComplaint = presentingComplaint;
-
-  const personalHistory = pruneEmpty(data.personalHistory as Record<string, string>);
-  if (personalHistory) interrogation.personalHistory = personalHistory;
-
-  return Object.keys(interrogation).length ? interrogation : undefined;
-};
 
 const Page = () => {
 
   const [step, setStep] = useState<1 | 2>(1);
   const [basicInfo, setBasicInfo] = useState<PatientFormData | null>(null);
-  const [caseData, setCaseData] = useState<CaseFormData>(emptyCase);
+  const [caseData, setCaseData] = useState<CaseFormData>(emptyCaseFormData());
   // Remembered so a retry after a failed case POST does not re-register the
   // patient — the unique {doctor, phoneNumber} index would reject it.
   const [createdPatientId, setCreatedPatientId] = useState<string | null>(null);
@@ -95,10 +42,7 @@ const Page = () => {
         setCreatedPatientId(patientId);
       }
 
-      await api.post(`/case/create-case/${patientId}`, {
-        chiefComplaint: caseData.chiefComplaint,
-        interrogation: buildInterrogation(caseData.interrogation),
-      });
+      await api.post(`/case/create-case/${patientId}`, buildCasePayload(caseData));
       router.push(`/patients/${patientId}`);
     } catch (error: any) {
       setError(error.response?.data?.message || "Something went wrong");
