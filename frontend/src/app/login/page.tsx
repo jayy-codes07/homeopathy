@@ -2,7 +2,9 @@
 import Loading from "@/components/Loading";
 import api from "@/utils/api";
 import { useRouter } from "next/navigation";
-import React, { FormEvent, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { selectAuthHydrated, selectToken, setCredentials } from "@/store/authSlice";
 
 interface FormData {
   fullname: string;
@@ -13,6 +15,9 @@ interface FormData {
 
 const Page = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const hydrated = useAppSelector(selectAuthHydrated);
+  const token = useAppSelector(selectToken);
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState<FormData>({
     fullname: "",
@@ -26,10 +31,12 @@ const Page = () => {
 
   const saveTokenAndRedirect = async () => {
     const response = await api.post("/doctor/login", formData);
-    const token = response.data.data.Accesstoken;
-    const username = response.data.data.doctor.fullname
-    localStorage.setItem("doctorJWT", token);
-    localStorage.setItem("username", username);
+    dispatch(
+      setCredentials({
+        token: response.data.data.Accesstoken,
+        doctorName: response.data.data.doctor.fullname,
+      }),
+    );
     router.push("/dashboard");
   };
 
@@ -55,11 +62,9 @@ const Page = () => {
   };
 
   useEffect(() => {
-    if (localStorage.getItem("doctorJWT")) {
-      router.push("/dashboard");
-
-    }
-  }, [])
+    // Already signed in (session restored from storage): skip the form.
+    if (hydrated && token) router.replace("/dashboard");
+  }, [hydrated, token, router]);
 
   return isLoading ? (
     <Loading />

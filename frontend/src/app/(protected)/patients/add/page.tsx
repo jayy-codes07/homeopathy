@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { CaseFormData, Patient } from "@/types";
 import api from "@/utils/api";
 import { useRouter } from "next/navigation";
@@ -51,10 +51,7 @@ const Page = () => {
     }
   };
 
-  useEffect(() => {
-    if (!localStorage.getItem("doctorJWT")) router.push("/login")
-  }, [])
-
+  // Auth is enforced by AuthGate in the (protected) layout.
   return (
     <div className="min-h-screen bg-[var(--color-background)] p-4 md:p-6 font-sans">
 
