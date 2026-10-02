@@ -76,13 +76,13 @@ Requires Node.js 20+ and a MongoDB instance.
 # Backend
 cd backend
 npm install
-# create backend/.env with the variables in the table below
+cp .env.example .env   # then fill in the values described below
 npm run dev            # nodemon on http://localhost:8000 (PORT from .env)
 
 # Frontend (second terminal)
 cd frontend
 npm install
-echo "NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1" > .env
+cp .env.example .env   # already points at http://localhost:8000/api/v1
 npm run dev            # http://localhost:3000
 ```
 
@@ -93,11 +93,11 @@ npm run dev            # http://localhost:3000
 | `CORS_ORIGIN` | backend | Allowed browser origin (defaults to `http://localhost:3000`) |
 | `ACCESS_TOKEN_SECRET` / `ACCESS_TOKEN_EXPIRE` | backend | Access JWT signing secret and lifetime, e.g. `1d` |
 | `REFRESH_TOKEN_SECRET` / `REFRESH_TOKEN_EXPIRE` | backend | Refresh JWT signing secret and lifetime, e.g. `10d` |
-| `CLOUDINARY_API_KEY` / `CLOUDINARY_SECRET` | backend | Cloudinary credentials for avatar uploads (cloud name is hard-coded in `utility/cloudinary.js`) |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_SECRET` | backend | Cloudinary account for avatar uploads |
 | `NODE_ENV` | backend | `development` includes stack traces in error responses |
 | `NEXT_PUBLIC_API_URL` | frontend | Base URL of the API, including `/api/v1` |
 
-There is no `.env.example` or seed script in the repo yet. Register a doctor through the login page to get started.
+There is no seed script. Register a doctor through the login page to get started.
 
 ## API overview
 

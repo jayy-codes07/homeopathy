@@ -4,7 +4,7 @@ export const uploadtocloudinary = async function (url) {
 
     // Configuration
     cloudinary.config({
-        cloud_name: 'dduesmocu',
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
         api_key: process.env.CLOUDINARY_API_KEY,
         api_secret: process.env.CLOUDINARY_SECRET
     });
